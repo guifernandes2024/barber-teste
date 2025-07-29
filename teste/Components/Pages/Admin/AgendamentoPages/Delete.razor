@@ -1,0 +1,71 @@
+@page "/agendamentos/delete"
+@using Microsoft.EntityFrameworkCore
+@using teste.Models
+@inject IDbContextFactory<teste.Data.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Delete</PageTitle>
+
+<h1>Delete</h1>
+
+<p>Are you sure you want to delete this?</p>
+<div>
+    <h2>Agendamento</h2>
+    <hr />
+    @if (agendamento is null)
+    {
+        <p><em>Loading...</em></p>
+    }
+    else {
+        <dl class="row">
+            <dt class="col-sm-2">DataHora</dt>
+            <dd class="col-sm-10">@agendamento.DataHora</dd>
+        </dl>
+        <dl class="row">
+            <dt class="col-sm-2">NomeDoCliente</dt>
+            <dd class="col-sm-10">@agendamento.NomeDoCliente</dd>
+        </dl>
+        <dl class="row">
+            <dt class="col-sm-2">NumeroDoCliente</dt>
+            <dd class="col-sm-10">@agendamento.NumeroDoCliente</dd>
+        </dl>
+        <dl class="row">
+            <dt class="col-sm-2">ServicoId</dt>
+            <dd class="col-sm-10">@agendamento.ServicoId</dd>
+        </dl>
+        <dl class="row">
+            <dt class="col-sm-2">Observacoes</dt>
+            <dd class="col-sm-10">@agendamento.Observacoes</dd>
+        </dl>
+        <EditForm method="post" Model="agendamento" OnValidSubmit="DeleteAgendamento" FormName="delete" Enhance>
+            <button type="submit" class="btn btn-danger" disabled="@(agendamento is null)">Delete</button> |
+            <a href="/agendamentos">Back to List</a>
+        </EditForm>
+    }
+</div>
+
+@code {
+    private Agendamento? agendamento;
+
+    [SupplyParameterFromQuery]
+    private int Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        agendamento = await context.Agendamento.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (agendamento is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+
+    private async Task DeleteAgendamento()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Agendamento.Remove(agendamento!);
+        await context.SaveChangesAsync();
+        NavigationManager.NavigateTo("/agendamentos");
+    }
+}

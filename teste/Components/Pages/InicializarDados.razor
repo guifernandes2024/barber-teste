@@ -1,0 +1,122 @@
+@page "/admin/inicializar-dados"
+@attribute [Authorize]
+@using Microsoft.EntityFrameworkCore
+@using teste.Models
+@using teste.Data
+@inject IDbContextFactory<ApplicationDbContext> DbFactory
+
+@rendermode InteractiveServer
+<PageTitle>Inicializar Dados - Barbearia</PageTitle>
+
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <h1>🔧 Inicializar Dados de Exemplo</h1>
+            <p class="lead">Este componente adiciona dados de exemplo para testar o sistema da barbearia.</p>
+
+            <div class="card">
+                <div class="card-header">
+                    <h5>Dados que serão criados:</h5>
+                </div>
+                <div class="card-body">
+                    <ul>
+                        <li><strong>Serviços:</strong> Corte masculino, Barba, Corte + Barba, Hidratação</li>
+                        <li><strong>Agendamentos de exemplo:</strong> Alguns agendamentos para demonstrar o sistema</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <button type="button" class="btn btn-primary btn-lg" @onclick="Inicializar" disabled="@IsInicializando">
+                    @if (IsInicializando)
+                    {
+                        <span class="spinner-border spinner-border-sm me-2"></span>
+                        <span>Inicializando...</span>
+                    }
+                    else
+                    {
+                        <i class="fas fa-database me-2"></i>
+                        <span>Inicializar Dados</span>
+                    }
+                </button>
+            </div>
+
+            @if (!string.IsNullOrEmpty(Mensagem))
+            {
+                <div class="alert alert-@TipoMensagem mt-3">
+                    @Mensagem
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private bool IsInicializando { get; set; } = false;
+    private string Mensagem { get; set; } = "";
+    private string TipoMensagem { get; set; } = "info";
+
+    private async Task Inicializar()
+    {
+        IsInicializando = true;
+        Mensagem = "";
+        StateHasChanged();
+
+        try
+        {
+            using var context = DbFactory.CreateDbContext();
+
+            // Verificar se já existem dados
+            var servicosExistentes = await context.Servico.CountAsync();
+            if (servicosExistentes > 0)
+            {
+                Mensagem = "Dados já foram inicializados anteriormente.";
+                TipoMensagem = "warning";
+                return;
+            }
+
+            // Criar serviços
+            var servicos = new List<Servico>
+            {
+                new Servico { Nome = "Corte Masculino", Descricao = "Corte tradicional masculino", Preco = 25.00m, DuracaoEmMinutos = 30 },
+                new Servico { Nome = "Barba", Descricao = "Acabamento de barba", Preco = 15.00m, DuracaoEmMinutos = 20 },
+                new Servico { Nome = "Corte + Barba", Descricao = "Corte completo com barba", Preco = 35.00m, DuracaoEmMinutos = 45 },
+                new Servico { Nome = "Hidratação", Descricao = "Hidratação capilar", Preco = 40.00m, DuracaoEmMinutos = 60 }
+            };
+
+            context.Servico.AddRange(servicos);
+            await context.SaveChangesAsync();
+
+            // Criar alguns agendamentos de exemplo
+            var hoje = DateTime.Today;
+            var servicosIds = servicos.Select(s => s.Id).ToList();
+
+            var agendamentos = new List<Agendamento>
+            {
+                new Agendamento(hoje.AddDays(1).AddHours(9), "João Silva", "(11) 99999-1111", servicosIds[0], "Corte tradicional"),
+                new Agendamento(hoje.AddDays(1).AddHours(10), "Pedro Santos", "(11) 99999-2222", servicosIds[2], "Corte completo"),
+                new Agendamento(hoje.AddDays(1).AddHours(14), "Carlos Oliveira", "(11) 99999-3333", servicosIds[1], "Apenas barba"),
+                new Agendamento(hoje.AddDays(2).AddHours(9), "Roberto Lima", "(11) 99999-4444", servicosIds[3], "Hidratação"),
+                new Agendamento(hoje.AddDays(2).AddHours(11), "Fernando Costa", "(11) 99999-5555", servicosIds[2], "Corte + barba"),
+                new Agendamento(hoje.AddDays(3).AddHours(10), "Lucas Pereira", "(11) 99999-6666", servicosIds[0], "Corte masculino"),
+                new Agendamento(hoje.AddDays(3).AddHours(15), "André Souza", "(11) 99999-7777", servicosIds[1], "Barba")
+            };
+
+            context.Agendamento.AddRange(agendamentos);
+            await context.SaveChangesAsync();
+
+            Mensagem = $"Dados inicializados com sucesso! Criados {servicos.Count} serviços e {agendamentos.Count} agendamentos de exemplo.";
+            TipoMensagem = "success";
+        }
+        catch (Exception ex)
+        {
+            Mensagem = $"Erro ao inicializar dados: {ex.Message}";
+            TipoMensagem = "danger";
+        }
+        finally
+        {
+            IsInicializando = false;
+            StateHasChanged();
+        }
+    }
+} 

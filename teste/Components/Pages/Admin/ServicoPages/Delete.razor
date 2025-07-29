@@ -1,0 +1,67 @@
+﻿@page "/servicos/delete"
+@using Microsoft.EntityFrameworkCore
+@using teste.Models
+@inject IDbContextFactory<teste.Data.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Delete</PageTitle>
+
+<h1>Delete</h1>
+
+<p>Are you sure you want to delete this?</p>
+<div>
+    <h2>Servico</h2>
+    <hr />
+    @if (servico is null)
+    {
+        <p><em>Loading...</em></p>
+    }
+    else {
+        <dl class="row">
+            <dt class="col-sm-2">Nome</dt>
+            <dd class="col-sm-10">@servico.Nome</dd>
+        </dl>
+        <dl class="row">
+            <dt class="col-sm-2">Descricao</dt>
+            <dd class="col-sm-10">@servico.Descricao</dd>
+        </dl>
+        <dl class="row">
+            <dt class="col-sm-2">Preco</dt>
+            <dd class="col-sm-10">@servico.Preco</dd>
+        </dl>
+        <dl class="row">
+            <dt class="col-sm-2">DuracaoEmMinutos</dt>
+            <dd class="col-sm-10">@servico.DuracaoEmMinutos</dd>
+        </dl>
+        <EditForm method="post" Model="servico" OnValidSubmit="DeleteServico" FormName="delete" Enhance>
+            <button type="submit" class="btn btn-danger" disabled="@(servico is null)">Delete</button> |
+            <a href="/servicos">Back to List</a>
+        </EditForm>
+    }
+</div>
+
+@code {
+    private Servico? servico;
+
+    [SupplyParameterFromQuery]
+    private int Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        servico = await context.Servico.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (servico is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+
+    private async Task DeleteServico()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Servico.Remove(servico!);
+        await context.SaveChangesAsync();
+        NavigationManager.NavigateTo("/servicos");
+    }
+}

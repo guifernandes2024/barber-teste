@@ -1,0 +1,52 @@
+﻿@page "/servicos/details"
+@using Microsoft.EntityFrameworkCore
+@using teste.Models
+@inject IDbContextFactory<teste.Data.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Details</PageTitle>
+
+<h1>Details</h1>
+
+<div>
+    <h2>Servico</h2>
+    <hr />
+    @if (servico is null)
+    {
+        <p><em>Loading...</em></p>
+    }
+    else {
+        <dl class="row">
+            <dt class="col-sm-2">Nome</dt>
+            <dd class="col-sm-10">@servico.Nome</dd>
+            <dt class="col-sm-2">Descricao</dt>
+            <dd class="col-sm-10">@servico.Descricao</dd>
+            <dt class="col-sm-2">Preco</dt>
+            <dd class="col-sm-10">@servico.Preco</dd>
+            <dt class="col-sm-2">DuracaoEmMinutos</dt>
+            <dd class="col-sm-10">@servico.DuracaoEmMinutos</dd>
+        </dl>
+        <div>
+            <a href="@($"/servicos/edit?id={servico.Id}")">Edit</a> |
+            <a href="@($"/servicos")">Back to List</a>
+        </div>
+    }
+</div>
+
+@code {
+    private Servico? servico;
+
+    [SupplyParameterFromQuery]
+    private int Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        servico = await context.Servico.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (servico is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+}
