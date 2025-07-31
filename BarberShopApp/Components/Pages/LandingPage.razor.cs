@@ -544,5 +544,52 @@ namespace BarberShopApp.Components.Pages
             HorarioSelecionado = null;
             StateHasChanged();
         }
+
+        private void HandleImageError(EventArgs e, int id, string type)
+        {
+            var randomImages = new Dictionary<string, string[]>
+            {
+                ["service"] = new[]
+                {
+                    "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
+                    "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
+                    "https://images.unsplash.com/photo-1622287162716-f311baa1a2b8?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
+                    "https://images.unsplash.com/photo-1621605815971-fbc98d665033?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80"
+                },
+                ["professional"] = new[]
+                {
+                    "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
+                    "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
+                    "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
+                    "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80"
+                }
+            };
+
+            if (randomImages.ContainsKey(type))
+            {
+                var random = new Random();
+                var randomImage = randomImages[type][random.Next(randomImages[type].Length)];
+                
+                // Atualizar a URL da imagem no objeto correspondente
+                if (type == "service")
+                {
+                    var servico = Servicos.FirstOrDefault(s => s.Id == id);
+                    if (servico != null)
+                    {
+                        servico.ImgUrl = randomImage;
+                        StateHasChanged();
+                    }
+                }
+                else if (type == "professional")
+                {
+                    var profissional = Profissionais.FirstOrDefault(p => p.Id == id);
+                    if (profissional != null)
+                    {
+                        profissional.ImgUrl = randomImage;
+                        StateHasChanged();
+                    }
+                }
+            }
+        }
     }
 }

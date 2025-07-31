@@ -114,9 +114,7 @@
             context.Servico.AddRange(servicos);
             await context.SaveChangesAsync();
 
-            // Criar alguns agendamentos de exemplo
-            var hoje = DateTime.Today;
-            var servicosIds = servicos.Select(s => s.Id).ToList();
+            // Criar profissional
             var profissional = new Profissional()
                 {
                     Nome = "Carlos Souza",
@@ -126,12 +124,34 @@
                     DataNacimento = new DateTime(1990, 1, 1),
                     TipoDocumento = DocumentType.CPF,
                     Documento = "12345678901",
-                    Email = "email@email.com",
+                    Email = "carlos@barbearia.com",
                     Especialidades = servicos,
                     PercentualDeComissao = 50,
                     Fumante = false,
                     Telefone = "(11) 99999-2222"
                 };
+
+            context.Profissional.Add(profissional);
+            await context.SaveChangesAsync();
+
+            // Criar usuário para o profissional
+            var profissionalUser = new ApplicationUser
+            {
+                UserName = "carlos",
+                Email = "carlos@barbearia.com",
+                EmailConfirmed = true
+            };
+
+            var profissionalPassword = "Profissional@123";
+            var resultProfissional = await userManager.CreateAsync(profissionalUser, profissionalPassword);
+            
+            if (resultProfissional.Succeeded)
+            {
+                await userManager.AddToRoleAsync(profissionalUser, "Profissional");
+            }
+
+            // Criar alguns agendamentos de exemplo
+            var hoje = DateTime.Today;
             var agendamentos = new List<Agendamento>
             {
                 new Agendamento(hoje.AddDays(1).AddHours(9), "João Silva", "(11) 99999-1111", servicos, profissional, "Corte tradicional"),
@@ -140,7 +160,7 @@
             context.Agendamento.AddRange(agendamentos);
             await context.SaveChangesAsync();
 
-            Mensagem = $"Dados inicializados com sucesso! Criados {servicos.Count} serviços e {agendamentos.Count} agendamentos de exemplo.";
+            Mensagem = $"Dados inicializados com sucesso! Criados {servicos.Count} serviços, 1 profissional, 1 usuário profissional e {agendamentos.Count} agendamentos de exemplo.";
             TipoMensagem = "success";
         }
         catch (Exception ex)

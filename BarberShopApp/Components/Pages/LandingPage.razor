@@ -10,30 +10,46 @@
 
 <!-- Hero Section -->
 <div class="hero-section">
-            <div class="container">
+    <div class="hero-overlay"></div>
+    <div class="container">
         <div class="row align-items-center min-vh-100">
-                    <div class="col-lg-6">
-                <h1 class="display-4 fw-bold text-white mb-4">
-                    Barbearia Profissional
-                        </h1>
-                <p class="lead text-white mb-4">
-                    Agende seu horário de forma rápida e fácil. 
-                    Nossos profissionais estão prontos para cuidar do seu visual.
-                </p>
-                <div class="hero-buttons">
-                    <button type="button" class="btn btn-primary btn-lg" @onclick="ScrollToAgendamento">
-                        <i class="fas fa-calendar-plus me-2"></i>Agendar Horário
-                    </button>
-
-                    <button type="button" class="btn btn-outline-light btn-lg" @onclick="ScrollToServicos">
-                        <i class="fas fa-scissors me-2"></i>Ver Serviços
-                    </button>
+            <div class="col-lg-6">
+                <div class="hero-content">
+                    <h1 class="hero-title">
+                        Barbearia <span class="text-primary">Profissional</span>
+                    </h1>
+                    <p class="hero-subtitle">
+                        Transforme seu visual com nossos especialistas. 
+                        Agende seu horário de forma rápida e descomplicada.
+                    </p>
+                    <div class="hero-stats">
+                        <div class="stat-item">
+                            <div class="stat-number">@Servicos.Count</div>
+                            <div class="stat-label">Serviços</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number">@Profissionais.Count</div>
+                            <div class="stat-label">Profissionais</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number">100%</div>
+                            <div class="stat-label">Satisfação</div>
                         </div>
                     </div>
+                    <div class="hero-buttons">
+                        <button type="button" class="btn btn-primary btn-lg me-3" @onclick="ScrollToAgendamento">
+                            <i class="fas fa-calendar-plus me-2"></i>Agendar Agora
+                        </button>
+                        <button type="button" class="btn btn-outline-light btn-lg" @onclick="ScrollToServicos">
+                            <i class="fas fa-scissors me-2"></i>Ver Serviços
+                        </button>
+                    </div>
+                </div>
+            </div>
             <div class="col-lg-6">
                 <div class="hero-image">
-                    <img src="https://images.unsplash.com/photo-1503951914875-452162b0f3f1?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80" 
-                    alt="Barbearia" class="img-fluid rounded shadow-lg">
+                    <img src="https://images.unsplash.com/photo-1503951914875-452162b0f3f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80" 
+                         alt="Barbearia" class="img-fluid rounded-4 shadow-2xl">
                 </div>
             </div>
         </div>
@@ -41,79 +57,79 @@
 </div>
 
 <!-- Serviços Section -->
-<div id="servicos" class="py-5 bg-light">
-            <div class="container">
-                <div class="row">
-                    <div class="col-12 text-center mb-5">
-                <h2 class="display-5 fw-bold">Nossos Serviços</h2>
-                <p class="lead text-muted">Oferecemos uma ampla variedade de serviços para cuidar do seu visual</p>
-                    </div>
-                </div>
-                    <div class="row">
-                        @foreach (var servico in Servicos)
-                        {
-
+<div id="servicos" class="services-section">
+    <div class="container">
+        <div class="row">
+            <div class="col-12 text-center mb-5">
+                <h2 class="section-title">Nossos Serviços</h2>
+                <p class="section-subtitle">Oferecemos uma ampla variedade de serviços para cuidar do seu visual</p>
+            </div>
+        </div>
+        <div class="row">
+            @foreach (var servico in Servicos)
+            {
                 <div class="col-lg-3 col-md-6 mb-4">
-                    <div class="card h-100 shadow-sm">
-                        <img src="@servico.ImgUrl" class="card-img-top" alt="@servico.Nome" style="height: 200px; object-fit: cover;">
-                        <div class="card-body">
-                                        <h5 class="card-title">@servico.Nome</h5>
-                            <p class="card-text">@servico.Descricao</p>
-                            <div class="d-flex justify-content-between align-items-center">
-                                <span class="badge bg-primary">@servico.DuracaoEmMinutos min</span>
-                                <span class="fw-bold text-success">R$ @servico.Preco.ToString("F2")</span>
-                                        </div>
-                                    </div>
-                                </div>
+                    <div class="service-card">
+                                                 <div class="service-image">
+                             <img src="@servico.ImgUrl" alt="@servico.Nome">
+                         </div>
+                        <div class="service-content">
+                            <h5 class="service-title">@servico.Nome</h5>
+                            <p class="service-description">@servico.Descricao</p>
+                            <div class="service-meta">
+                                <span class="service-duration">@servico.DuracaoEmMinutos min</span>
+                                <span class="service-price">R$ @servico.Preco.ToString("F2")</span>
                             </div>
-                        }
-                    </div>
+                        </div>
                     </div>
                 </div>
+            }
+        </div>
+    </div>
+</div>
 
 <!-- Agendamento Section -->
-<div id="agendamento" class="py-5">
+<div id="agendamento" class="booking-section">
     <div class="container">
-                <div class="row justify-content-center">
-                    <div class="col-lg-8">
-                <div class="card shadow-lg">
-                    <div class="card-header bg-primary text-white">
-                        <h3 class="mb-0">
-                            <i class="fas fa-calendar-plus me-2"></i>
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="booking-card">
+                    <div class="booking-header">
+                        <h3 class="booking-title">
+                            <i class="fas fa-calendar-plus me-3"></i>
                             Agendar Horário
                         </h3>
-                            </div>
-                            <div class="card-body">
+                        <p class="booking-subtitle">Complete os passos abaixo para agendar seu horário</p>
+                    </div>
+                    <div class="booking-body">
                         <!-- Progress Bar -->
-                        <div class="progress mb-4" style="height: 8px;">
-                            <div class="progress-bar" role="progressbar" 
-                                 style="width: @((CurrentStep * 100 / TotalSteps) + "%")" 
-                                 aria-valuenow="@CurrentStep" aria-valuemin="1" aria-valuemax="@TotalSteps">
+                        <div class="progress-container">
+                            <div class="progress-bar-custom">
+                                <div class="progress-fill" style="width: @((CurrentStep * 100 / TotalSteps) + "%")"></div>
                             </div>
+                            <div class="progress-text">Passo @CurrentStep de @TotalSteps</div>
                         </div>
 
                         <!-- Step Indicators -->
-                        <div class="step-indicator mb-4">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div class="text-center">
-                                    <div class="step-circle @(CurrentStep >= 1 ? "active" : "")">1</div>
-                                    <div class="step-label @(CurrentStep >= 1 ? "active" : "")">Serviços</div>
-                                </div>
-                                <div class="step-line @(CurrentStep >= 2 ? "active" : "")"></div>
-                                <div class="text-center">
-                                    <div class="step-circle @(CurrentStep >= 2 ? "active" : "")">2</div>
-                                    <div class="step-label @(CurrentStep >= 2 ? "active" : "")">Profissional</div>
-                                </div>
-                                <div class="step-line @(CurrentStep >= 3 ? "active" : "")"></div>
-                                <div class="text-center">
-                                    <div class="step-circle @(CurrentStep >= 3 ? "active" : "")">3</div>
-                                    <div class="step-label @(CurrentStep >= 3 ? "active" : "")">Horário</div>
-                                </div>
-                                <div class="step-line @(CurrentStep >= 4 ? "active" : "")"></div>
-                                <div class="text-center">
-                                    <div class="step-circle @(CurrentStep >= 4 ? "active" : "")">4</div>
-                                    <div class="step-label @(CurrentStep >= 4 ? "active" : "")">Dados</div>
-                                </div>
+                        <div class="step-indicators">
+                            <div class="step-item @(CurrentStep >= 1 ? "active" : "")">
+                                <div class="step-circle">1</div>
+                                <div class="step-label">Serviços</div>
+                            </div>
+                            <div class="step-line @(CurrentStep >= 2 ? "active" : "")"></div>
+                            <div class="step-item @(CurrentStep >= 2 ? "active" : "")">
+                                <div class="step-circle">2</div>
+                                <div class="step-label">Profissional</div>
+                            </div>
+                            <div class="step-line @(CurrentStep >= 3 ? "active" : "")"></div>
+                            <div class="step-item @(CurrentStep >= 3 ? "active" : "")">
+                                <div class="step-circle">3</div>
+                                <div class="step-label">Horário</div>
+                            </div>
+                            <div class="step-line @(CurrentStep >= 4 ? "active" : "")"></div>
+                            <div class="step-item @(CurrentStep >= 4 ? "active" : "")">
+                                <div class="step-circle">4</div>
+                                <div class="step-label">Dados</div>
                             </div>
                         </div>
 
@@ -123,87 +139,45 @@
                             {
                                 <!-- Step 1: Seleção de Serviços -->
                                 <div class="step-panel">
-                                    <h4 class="mb-4">
+                                    <h4 class="step-title">
                                         <i class="fas fa-scissors me-2"></i>
-                                        Selecione os Serviços
+                                        Escolha seus Serviços
                                     </h4>
+                                    <p class="step-description">Selecione os serviços que deseja agendar</p>
                                     
-                                    <!-- Renderização direta dos serviços -->
-                                    @if (Servicos != null && Servicos.Any())
-                                    {
-                                        <div class="row">
-                                            @foreach (var servico in Servicos)
-                                            {
-                                                <div class="col-md-6 col-lg-4 mb-3">
-                                                    <div class="card h-100 servico-card @(ServicosSelecionados.Any(s => s.Id == servico.Id) ? "border-primary" : "")">
-                                                        <div class="card-body">
-                                                            <div class="form-check">
-                                                                <input class="form-check-input" type="checkbox" 
-                                                                       id="servico-@servico.Id" 
-                                                                       @onchange="@(() => ToggleServico(servico))"
-                                                                       checked="@ServicosSelecionados.Any(s => s.Id == servico.Id)" />
-                                                                <label class="form-check-label" for="servico-@servico.Id">
-                                                                    <strong>@servico.Nome</strong>
-                                                                </label>
-                                                            </div>
-                                                            <div class="mt-2">
-                                                                <small class="text-muted">
-                                                                    <i class="fas fa-clock me-1"></i>@servico.DuracaoEmMinutos min
-                                                                </small>
-                                                                <br />
-                                                                <small class="text-success">
-                                                                    <i class="fas fa-dollar-sign me-1"></i>@servico.Preco.ToString("F2")
-                                                                </small>
-                                                            </div>
-                                                        </div>
+                                    <div class="services-grid">
+                                        @foreach (var servico in Servicos)
+                                        {
+                                            <div class="service-select-card @(ServicosSelecionados.Any(s => s.Id == servico.Id) ? "selected" : "")"
+                                                 @onclick="@(() => ToggleServico(servico))">
+                                                                                                 <div class="service-select-image">
+                                                     <img src="@servico.ImgUrl" alt="@servico.Nome">
+                                                 </div>
+                                                <div class="service-select-content">
+                                                    <h5 class="service-select-title">@servico.Nome</h5>
+                                                    <p class="service-select-description">@servico.Descricao</p>
+                                                    <div class="service-select-meta">
+                                                        <span class="service-select-duration">@servico.DuracaoEmMinutos min</span>
+                                                        <span class="service-select-price">R$ @servico.Preco.ToString("F2")</span>
                                                     </div>
                                                 </div>
-                                            }
-                                        </div>
-
-                                        @if (ServicosSelecionados.Any())
-                                        {
-                                            <div class="mt-3">
-                                                <div class="alert alert-info">
-                                                    <h6><i class="fas fa-info-circle me-2"></i>Resumo dos Serviços Selecionados:</h6>
-                                                    <ul class="mb-0">
-                                                        @foreach (var servico in ServicosSelecionados)
-                                                        {
-                                                            <li>@servico.Nome - @servico.DuracaoEmMinutos min - R$ @servico.Preco.ToString("F2")</li>
-                                                        }
-                                                    </ul>
-                                                    <hr class="my-2" />
-                                                    <div class="d-flex justify-content-between">
-                                                        <strong>Total de Tempo:</strong>
-                                                        <strong>@ServicosSelecionados.Sum(s => s.DuracaoEmMinutos) min</strong>
-                                                    </div>
-                                                    <div class="d-flex justify-content-between">
-                                                        <strong>Valor Total:</strong>
-                                                        <strong class="text-success">R$ @ServicosSelecionados.Sum(s => s.Preco).ToString("F2")</strong>
-                                            </div>
+                                                <div class="service-select-check">
+                                                    <i class="fas fa-check"></i>
                                                 </div>
                                             </div>
                                         }
-                                    }
-                                    else
-                                    {
-                                        <div class="alert alert-warning">
-                                            <i class="fas fa-exclamation-triangle me-2"></i>
-                                            Nenhum serviço disponível no momento.
-                                        </div>
-                                    }
+                                    </div>
                                 </div>
                             }
                             else if (CurrentStep == 2)
                             {
                                 <!-- Step 2: Seleção de Profissional -->
                                 <div class="step-panel">
-                                    <h4 class="mb-4">
+                                    <h4 class="step-title">
                                         <i class="fas fa-user-tie me-2"></i>
                                         Escolha o Profissional
                                     </h4>
-                                    
-
+                                    <p class="step-description">Selecione o profissional que irá atendê-lo</p>
                                     
                                     <!-- Renderização direta dos profissionais -->
                                     @if (ServicosSelecionados.Any())
@@ -213,162 +187,83 @@
                                                        ServicosSelecionados.All(s => p.Especialidades.Any(e => e.Id == s.Id)))
                                             .ToList();
                                         
-                                        <div class="alert alert-info mb-3">
-                                            <i class="fas fa-info-circle me-2"></i>
-                                            <strong>@profissionaisFiltrados.Count</strong> profissional(is) disponível(is) para <strong>TODOS</strong> os serviços selecionados.
-                                        </div>
-
-                                        @if (profissionaisFiltrados.Any())
-                                        {
-                                            <div class="row">
-                                                @foreach (var profissional in profissionaisFiltrados)
-                                                {
-                                                    <div class="col-md-6 col-lg-4 mb-3">
-                                                        <div class="card h-100 profissional-card @(ProfissionalSelecionado?.Id == profissional.Id ? "border-primary" : "")">
-                                                            <div class="card-body">
-                                                                <div class="text-center mb-3">
-                                                                    <img src="@profissional.ImgUrl" alt="@profissional.Nome" 
-                                                                         class="rounded-circle" style="width: 80px; height: 80px; object-fit: cover;" />
-                                                                </div>
-                                                                
-                                                                <div class="form-check">
-                                                                    <input class="form-check-input" type="radio" 
-                                                                           name="profissional" 
-                                                                           id="profissional-@profissional.Id" 
-                                                                           @onchange="@(() => SelecionarProfissional(profissional))"
-                                                                           checked="@(ProfissionalSelecionado?.Id == profissional.Id)" />
-                                                                    <label class="form-check-label" for="profissional-@profissional.Id">
-                                                                        <strong>@profissional.Nome</strong>
-                                                                    </label>
-                                                                </div>
-                                                                
-                                                                <div class="mt-2">
-                                                                    <small class="text-muted">
-                                                                        <i class="fas fa-envelope me-1"></i>@profissional.Email
-                                                                    </small>
-                                                                    <br />
-                                                                    <small class="text-muted">
-                                                                        <i class="fas fa-phone me-1"></i>@profissional.Telefone
-                                                                    </small>
-                                                                </div>
-                                                                
-                                                                @if (profissional.Especialidades != null && profissional.Especialidades.Any())
-                                                                {
-                                                                    <div class="mt-2">
-                                                                        <small class="text-info">
-                                                                            <i class="fas fa-star me-1"></i>
-                                                                            <strong>Especialidades:</strong>
-                                                                        </small>
-                                                                        <br />
-                                                                        <small class="text-muted">
-                                                                            @string.Join(", ", profissional.Especialidades.Select(e => e.Nome))
-                                                                        </small>
-                                                                    </div>
-                                                                }
+                                        <div class="professionals-grid">
+                                            @foreach (var profissional in profissionaisFiltrados)
+                                            {
+                                                <div class="professional-card @(ProfissionalSelecionado?.Id == profissional.Id ? "selected" : "")"
+                                                     @onclick="@(() => SelecionarProfissional(profissional))">
+                                                                                                         <div class="professional-image">
+                                                         <img src="@profissional.ImgUrl" alt="@profissional.Nome">
+                                                     </div>
+                                                    <div class="professional-content">
+                                                        <h5 class="professional-name">@profissional.Nome</h5>
+                                                        <div class="professional-info">
+                                                            <div class="info-item">
+                                                                <i class="fas fa-envelope"></i>
+                                                                <span>@profissional.Email</span>
+                                                            </div>
+                                                            <div class="info-item">
+                                                                <i class="fas fa-phone"></i>
+                                                                <span>@profissional.Telefone</span>
                                                             </div>
                                                         </div>
+                                                                                                                 @if (profissional.Especialidades != null && profissional.Especialidades.Any())
+                                                         {
+                                                             <div class="professional-specialties">
+                                                                 <strong>Especialidades:</strong>
+                                                                 <span>@string.Join(", ", profissional.Especialidades.Select(e => e.Nome))</span>
+                                                             </div>
+                                                         }
+                                                         <div class="professional-smoking">
+                                                             <i class="fas @(profissional.Fumante ? "fa-smoking" : "fa-smoking-ban")"></i>
+                                                             <span>@(profissional.Fumante ? "Fumante" : "Não fumante")</span>
+                                                         </div>
+                                                    </div>
+                                                    <div class="professional-check">
+                                                        <i class="fas fa-check"></i>
+                                                    </div>
                                                 </div>
-                                                }
-                                            </div>
-                                        }
-                                        else
-                                        {
-                                            <div class="alert alert-warning">
-                                                <i class="fas fa-exclamation-triangle me-2"></i>
-                                                <strong>Nenhum profissional disponível</strong> para os serviços selecionados.
-                                                <br />
-                                                <small class="text-muted">
-                                                    Tente selecionar outros serviços ou entre em contato conosco.
-                                                </small>
-                                            </div>
-                                        }
+                                            }
+                                        </div>
                                     }
                                     else
                                     {
-                                        <div class="alert alert-secondary">
+                                        <div class="alert alert-info">
                                             <i class="fas fa-info-circle me-2"></i>
                                             Selecione pelo menos um serviço para ver os profissionais disponíveis.
                                         </div>
                                     }
-                                    
-                                    <!-- Componente original (comentado) -->
-                                    @*<SelecaoProfissional Profissionais="@Profissionais" 
-                                                        ProfissionalSelecionado="@ProfissionalSelecionado" 
-                                                        ServicosSelecionados="@ServicosSelecionados"
-                                                        OnProfissionalSelecionadoChanged="@OnProfissionalSelecionadoChanged" />*@
                                 </div>
                             }
                             else if (CurrentStep == 3)
                             {
                                 <!-- Step 3: Seleção de Data e Horário -->
                                 <div class="step-panel">
-                                    <h4 class="mb-4">
+                                    <h4 class="step-title">
                                         <i class="fas fa-clock me-2"></i>
                                         Escolha Data e Horário
                                     </h4>
+                                    <p class="step-description">Selecione a data e horário de sua preferência</p>
                                     
-
-
-                                    <div class="row mb-3">
-                                        <div class="col-md-6">
+                                    <div class="date-time-selector">
+                                        <div class="date-selector">
                                             <label for="dataSelect" class="form-label">Data:</label>
                                             <input type="date" id="dataSelect" class="form-control" 
                                                    @onchange="OnDataChanged" 
                                                    value="@DataSelecionada?.ToString("yyyy-MM-dd")" 
                                                    min="@DateTime.Today.ToString("yyyy-MM-dd")" />
                                         </div>
-                                    </div>
-
-                                    <div class="row">
-                                        <div class="col-12">
-                                            <h5>Horários Disponíveis para @DataSelecionada?.ToString("dd/MM/yyyy") ?? DateTime.Today.ToString("dd/MM/yyyy"):</h5>
-                                             <div class="alert alert-info">
-                                                 <i class="fas fa-clock me-2"></i>
-                                                 <strong>Horários de 30 em 30 minutos (8:00 às 18:00)</strong><br />
-                                                @if (ProfissionalSelecionado != null)
-                                                {
-                                                    <strong>Profissional:</strong> @ProfissionalSelecionado.Nome
-
-                                                    <br />
-                                                    @if (ServicosSelecionados.Any())
-                                                    {
-                                                        <strong>Serviços:</strong> @string.Join(", ", ServicosSelecionados.Select(s => s.Nome))
-
-                                                        <br />
-                                                        <strong>Duração Total:</strong> @ServicosSelecionados.Sum(s => s.DuracaoEmMinutos) <text>minutos</text>
-
-                                                        <br />
-                                                    }
-                                                    else
-                                                    {
-                                                        <strong>Duração:</strong> <text>30 minutos (padrão)</text>
-
-                                                        <br />
-                                                    }
-                                                }
-                                                else
-                                                {
-                                                    <strong>Status:</strong> <text>Selecione um profissional para ver horários disponíveis</text>
-
-                                                    <br />
-                                                }
-                                                 @if (DataSelecionada?.Date == DateTime.Today)
-                                                 {
-                                                     <small class="text-muted">
-                                                         <i class="fas fa-clock me-1"></i>
-                                                         Mostrando apenas horários futuros (maiores que o horário atual)
-                                                     </small>
-                                                 }
-                                             </div>
-
+                                        
+                                        <div class="time-selector">
+                                            <label class="form-label">Horários Disponíveis:</label>
                                             @if (HorariosDisponiveis != null && HorariosDisponiveis.Any())
                                             {
-                                                <div class="horarios-grid">
+                                                <div class="time-grid">
                                                     @foreach (var horario in HorariosDisponiveis)
                                                     {
                                                         <button type="button"
-                                                        class="btn btn-outline-primary horario-btn @(HorarioSelecionado.HasValue && horario.Equals(HorarioSelecionado.Value) ? "active" : "")"
-                                                        @onclick="@(() => SelecionarHorario(horario))">
+                                                                class="time-slot @(HorarioSelecionado.HasValue && horario.Equals(HorarioSelecionado.Value) ? "selected" : "")"
+                                                                @onclick="@(() => SelecionarHorario(horario))">
                                                             @horario.ToString("HH:mm")
                                                         </button>
                                                     }
@@ -378,153 +273,122 @@
                                             {
                                                 <div class="alert alert-warning">
                                                     <i class="fas fa-exclamation-triangle me-2"></i>
-                                                    @if (DataSelecionada?.Date == DateTime.Today)
-                                                    {
-                                                        <strong>Não há horários disponíveis para hoje.</strong><br />
-                                                        <small class="text-muted">
-                                                            Os horários disponíveis são mostrados a partir de 30 minutos após o horário atual.
-                                                        </small>
-                                                    }
-                                                    else
-                                                    {
-                                                        <strong>Não há horários disponíveis</strong>
-                                                        <p>para esta data.</p>
-                                                    }
+                                                    Não há horários disponíveis para a data selecionada.
                                                 </div>
                                             }
                                         </div>
                                     </div>
-
-                                    @if (HorarioSelecionado.HasValue)
-                                    {
-                                        <div class="row mt-3">
-                                            <div class="col-12">
-                                                <div class="alert alert-success">
-                                                    <strong>Agendamento Selecionado:</strong><br />
-                                                    <strong>Data/Hora:</strong> @HorarioSelecionado.Value.ToString("dd/MM/yyyy HH:mm")<br />
-                                                    <strong>Profissional:</strong> @ProfissionalSelecionado?.Nome<br />
-                                                    <strong>Serviços:</strong> @string.Join(", ", ServicosSelecionados.Select(s => s.Nome))<br />
-                                                    <strong>Duração:</strong> @ServicosSelecionados.Sum(s => s.DuracaoEmMinutos) minutos<br />
-                                                    <strong>Valor Total:</strong> R$ @ServicosSelecionados.Sum(s => s.Preco).ToString("F2")
-                                                </div>
-                                            </div>
-                                        </div>
-                                    }
                                 </div>
                             }
                             else if (CurrentStep == 4)
                             {
                                 <!-- Step 4: Dados do Cliente -->
                                 <div class="step-panel">
-                                    <h4 class="mb-4">
+                                    <h4 class="step-title">
                                         <i class="fas fa-user me-2"></i>
                                         Dados do Cliente
                                     </h4>
-                                    <div class="row">
-                                        <div class="col-md-6 mb-3">
-                                            <label for="nomeCliente" class="form-label">Nome Completo *</label>
-                                            <input type="text" id="nomeCliente" class="form-control" 
-                                                   @bind="Agendamento.NomeDoCliente" placeholder="Digite seu nome completo">
-                                        </div>
-                                        <div class="col-md-6 mb-3">
-                                            <label for="telefoneCliente" class="form-label">Telefone *</label>
-                                            <input type="text" id="telefoneCliente" class="form-control" 
-                                                   @bind="Agendamento.NumeroDoCliente" placeholder="(99) 99999-9999" maxlength="15">
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-12 mb-3">
-                                            <label for="observacoes" class="form-label">Observações (opcional)</label>
-                                            <textarea id="observacoes" class="form-control" rows="3" 
-                                                      @bind="Agendamento.Observacoes" placeholder="Alguma observação especial?"></textarea>
-                                        </div>
-                                    </div>
-
-                                    <!-- Resumo do Agendamento -->
-                                    @if (HorarioSelecionado.HasValue && ProfissionalSelecionado != null && ServicosSelecionados.Any())
-                                    {
-                                        <div class="alert alert-info mt-4">
-                                            <h5 class="mb-3">
-                                                <i class="fas fa-clipboard-list me-2"></i>
-                                                Resumo do Agendamento
-                                            </h5>
+                                    <p class="step-description">Preencha seus dados para finalizar o agendamento</p>
+                                    
+                                    <div class="client-form">
                                         <div class="row">
-                                            <div class="col-md-6">
-                                                    <strong>Data/Hora:</strong><br />
-                                                    <span class="text-primary">@HorarioSelecionado.Value.ToString("dd/MM/yyyy HH:mm")</span>
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <strong>Profissional:</strong><br />
-                                                    <span class="text-primary">@ProfissionalSelecionado.Nome</span>
-                                                </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label for="nomeCliente" class="form-label">Nome Completo *</label>
+                                                <input type="text" id="nomeCliente" class="form-control" 
+                                                       @bind="Agendamento.NomeDoCliente" placeholder="Digite seu nome completo">
                                             </div>
-                                            <hr />
-                                            <div class="row">
-                                                <div class="col-md-6">
-                                                    <strong>Serviços:</strong><br />
-                                                    <span class="text-primary">@string.Join(", ", ServicosSelecionados.Select(s => s.Nome))</span>
+                                            <div class="col-md-6 mb-3">
+                                                <label for="telefoneCliente" class="form-label">Telefone *</label>
+                                                <input type="text" id="telefoneCliente" class="form-control" 
+                                                       @bind="Agendamento.NumeroDoCliente" placeholder="(99) 99999-9999" maxlength="15">
                                             </div>
-                                            <div class="col-md-6">
-                                                    <strong>Duração:</strong><br />
-                                                    <span class="text-primary">@ServicosSelecionados.Sum(s => s.DuracaoEmMinutos) minutos</span>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-12 mb-3">
+                                                <label for="observacoes" class="form-label">Observações (opcional)</label>
+                                                <textarea id="observacoes" class="form-control" rows="3" 
+                                                          @bind="Agendamento.Observacoes" placeholder="Alguma observação especial?"></textarea>
+                                            </div>
+                                        </div>
+
+                                        <!-- Resumo do Agendamento -->
+                                        @if (HorarioSelecionado.HasValue && ProfissionalSelecionado != null && ServicosSelecionados.Any())
+                                        {
+                                            <div class="booking-summary">
+                                                <h5 class="summary-title">
+                                                    <i class="fas fa-clipboard-list me-2"></i>
+                                                    Resumo do Agendamento
+                                                </h5>
+                                                <div class="summary-content">
+                                                    <div class="summary-item">
+                                                        <span class="summary-label">Data/Hora:</span>
+                                                        <span class="summary-value">@HorarioSelecionado.Value.ToString("dd/MM/yyyy HH:mm")</span>
+                                                    </div>
+                                                    <div class="summary-item">
+                                                        <span class="summary-label">Profissional:</span>
+                                                        <span class="summary-value">@ProfissionalSelecionado.Nome</span>
+                                                    </div>
+                                                    <div class="summary-item">
+                                                        <span class="summary-label">Serviços:</span>
+                                                        <span class="summary-value">@string.Join(", ", ServicosSelecionados.Select(s => s.Nome))</span>
+                                                    </div>
+                                                    <div class="summary-item">
+                                                        <span class="summary-label">Duração:</span>
+                                                        <span class="summary-value">@ServicosSelecionados.Sum(s => s.DuracaoEmMinutos) minutos</span>
+                                                    </div>
+                                                    <div class="summary-item total">
+                                                        <span class="summary-label">Valor Total:</span>
+                                                        <span class="summary-value">R$ @ServicosSelecionados.Sum(s => s.Preco).ToString("F2")</span>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            <hr />
-                                            <div class="row">
-                                                <div class="col-12">
-                                                    <strong>Valor Total:</strong><br />
-                                                    <span class="text-success fs-5">R$ @ServicosSelecionados.Sum(s => s.Preco).ToString("F2")</span>
-                                                </div>
-                                            </div>
                                             </div>
                                         }
-                            </div>
-                        }
-                            </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
 
                         <!-- Navigation Buttons -->
-                        <div class="row mt-3">
-                            <div class="col-12">
-                                @if (CurrentStep > 1)
-                                {
-                                    <button type="button" class="btn btn-secondary me-2" @onclick="PreviousStep">
-                                        <i class="fas fa-arrow-left me-1"></i>
-                                        Voltar
-                                    </button>
-                                }
-                                
-                                @if (CurrentStep < TotalSteps)
-                                {
-                                    <button type="button" class="btn btn-primary" @onclick="NextStep" disabled="@(!CanProceedToNextStep)">
-                                        @if (isLoading)
-                                        {
-                                            <span class="spinner-border spinner-border-sm me-2"></span>
-                                            <span>Carregando...</span>
-                                        }
-                                        else
-                                        {
-                                            <span>Próximo</span>
-                                            <i class="fas fa-arrow-right ms-1"></i>
-                                        }
-                                    </button>
-                                }
-                                
-                                @if (CurrentStep == TotalSteps && CanProceedToNextStep)
-                                {
-                                    <button type="button" class="btn btn-success btn-lg" @onclick="AddAgendamento" disabled="@isLoading">
-                                        @if (isLoading)
-                                        {
-                                            <span class="spinner-border spinner-border-sm me-2"></span>
-                                            <span>Finalizando...</span>
-                                        }
-                                        else
-                                        {
-                                            <i class="fas fa-check me-2"></i>
-                                            <span>Confirmar Agendamento</span>
-                                        }
-                                    </button>
-                                }
-                            </div>
+                        <div class="step-navigation">
+                            @if (CurrentStep > 1)
+                            {
+                                <button type="button" class="btn btn-outline-secondary" @onclick="PreviousStep">
+                                    <i class="fas fa-arrow-left me-2"></i>
+                                    Voltar
+                                </button>
+                            }
+                            
+                            @if (CurrentStep < TotalSteps)
+                            {
+                                <button type="button" class="btn btn-primary" @onclick="NextStep" disabled="@(!CanProceedToNextStep)">
+                                    @if (isLoading)
+                                    {
+                                        <span class="spinner-border spinner-border-sm me-2"></span>
+                                        <span>Carregando...</span>
+                                    }
+                                    else
+                                    {
+                                        <span>Próximo</span>
+                                        <i class="fas fa-arrow-right ms-2"></i>
+                                    }
+                                </button>
+                            }
+                            
+                            @if (CurrentStep == TotalSteps && CanProceedToNextStep)
+                            {
+                                <button type="button" class="btn btn-success btn-lg" @onclick="AddAgendamento" disabled="@isLoading">
+                                    @if (isLoading)
+                                    {
+                                        <span class="spinner-border spinner-border-sm me-2"></span>
+                                        <span>Finalizando...</span>
+                                    }
+                                    else
+                                    {
+                                        <i class="fas fa-check me-2"></i>
+                                        <span>Confirmar Agendamento</span>
+                                    }
+                                </button>
+                            }
                         </div>
                     </div>
                 </div>
@@ -533,203 +397,57 @@
     </div>
 </div>
 
+<!-- Footer -->
+<footer class="footer">
+    <div class="container">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h5><i class="fas fa-scissors me-2"></i>Barbearia Profissional</h5>
+                <p>Transforme seu visual com nossos especialistas. Qualidade e profissionalismo em cada corte.</p>
+                <div class="social-links">
+                    <a href="#" title="Facebook"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" title="Instagram"><i class="fab fa-instagram"></i></a>
+                    <a href="#" title="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+                </div>
+            </div>
+            
+            <div class="footer-section">
+                <h5><i class="fas fa-map-marker-alt me-2"></i>Localização</h5>
+                <p><i class="fas fa-map-marker-alt me-2"></i>Rua das Barbearias, 123</p>
+                <p><i class="fas fa-phone me-2"></i>(11) 99999-9999</p>
+                <p><i class="fas fa-envelope me-2"></i>contato@barbearia.com</p>
+            </div>
+            
+            <div class="footer-section">
+                <h5><i class="fas fa-clock me-2"></i>Horário de Funcionamento</h5>
+                <p><strong>Segunda a Sexta:</strong> 08:00 - 18:00</p>
+                <p><strong>Sábado:</strong> 08:00 - 17:00</p>
+                <p><strong>Domingo:</strong> Fechado</p>
+            </div>
+            
+            <div class="footer-section">
+                <h5><i class="fas fa-tools me-2"></i>Serviços</h5>
+                <p><a href="#servicos">Corte Masculino</a></p>
+                <p><a href="#servicos">Barba</a></p>
+                <p><a href="#servicos">Corte + Barba</a></p>
+                <p><a href="#servicos">Hidratação</a></p>
+            </div>
+        </div>
+        
+        <div class="footer-bottom">
+            <p>&copy;@DateTime.Now.Year.ToString() Barbearia Profissional. Todos os direitos reservados.</p>
+            <p><a href="/admin" class="text-light">Área Administrativa</a></p>
+        </div>
+    </div>
+</footer>
+
 <!-- Feedback Message -->
 @if (!string.IsNullOrEmpty(mensagemFeedback))
 {
-    <div class="position-fixed top-0 end-0 p-3" style="z-index: 1050;">
-        <div class="alert alert-@tipoMensagem alert-dismissible fade show" role="alert">
-            @mensagemFeedback
-            <button type="button" class="btn-close" @onclick="() => mensagemFeedback = string.Empty"></button>
+    <div class="feedback-toast @tipoMensagem">
+        <div class="feedback-content">
+            <i class="fas fa-@(tipoMensagem == "success" ? "check-circle" : tipoMensagem == "error" ? "exclamation-circle" : "info-circle") me-2"></i>
+            <span>@mensagemFeedback</span>
         </div>
     </div>
-}
-
-        <!-- Footer -->
-<footer class="py-5 bg-dark text-light">
-            <div class="container">
-                <div class="row">
-                    <div class="col-md-6">
-                <h5>Barbearia Profissional</h5>
-                        <p class="text-muted">Qualidade e profissionalismo em cada corte.</p>
-                    </div>
-                    <div class="col-md-6 text-md-end">
-                <h5>Contato</h5>
-                        <p class="text-muted">
-                            <i class="fas fa-phone me-2"></i>(11) 99999-9999<br />
-                            <i class="fas fa-map-marker-alt me-2"></i>Rua das Barbearias, 123<br />
-                            <i class="fas fa-clock me-2"></i>Seg-Sáb: 08:00 - 18:00
-                        </p>
-                    </div>
-                </div>
-                <hr class="my-4">
-                <div class="row">
-                    <div class="col-12 text-center">
-                        <p class="text-muted mb-0">
-                            © 2024 Barbearia. Todos os direitos reservados.
-                            <a href="/admin" class="text-muted ms-3">Área Administrativa</a>
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </footer>
-
-<style>
-    .hero-section {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        min-height: 100vh;
-        display: flex;
-        align-items: center;
-    }
-
-    .hero-image img {
-        max-width: 100%;
-        height: auto;
-    }
-
-    .step-panel {
-        background: white;
-        border-radius: 10px;
-        padding: 2rem;
-        margin-bottom: 2rem;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
-
-    .step-indicator {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 2rem;
-    }
-
-    .step-circle {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: bold;
-        color: white;
-        background-color: #6c757d;
-        position: relative;
-        transition: all 0.3s ease;
-    }
-
-    .step-circle.active {
-        background-color: #0d6efd;
-        transform: scale(1.1);
-    }
-
-    .step-circle.completed {
-        background-color: #198754;
-    }
-
-    .step-line {
-        flex: 1;
-        height: 2px;
-        background-color: #6c757d;
-        margin: 20px 10px 0;
-        position: relative;
-        transition: all 0.3s ease;
-    }
-
-    .step-line.active {
-        background-color: #0d6efd;
-    }
-
-    .step-label {
-        text-align: center;
-        font-size: 0.875rem;
-        margin-top: 0.5rem;
-        color: #6c757d;
-        font-weight: 500;
-        transition: all 0.3s ease;
-    }
-
-    .step-label.active {
-        color: #0d6efd;
-        font-weight: bold;
-    }
-
-    .servico-card {
-        transition: all 0.2s ease-in-out;
-        cursor: pointer;
-    }
-
-    .servico-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    }
-
-    .servico-card.border-primary {
-        border-width: 2px !important;
-    }
-
-    .form-check-input:checked {
-        background-color: #0d6efd;
-        border-color: #0d6efd;
-    }
-
-    .profissional-card {
-        transition: all 0.2s ease-in-out;
-        cursor: pointer;
-    }
-
-    .profissional-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    }
-
-    .profissional-card.border-primary {
-        border-width: 2px !important;
-    }
-
-    .horarios-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-        gap: 10px;
-        margin-top: 15px;
-    }
-
-    .horario-btn {
-        padding: 10px;
-        border-radius: 8px;
-        transition: all 0.2s ease-in-out;
-    }
-
-    .horario-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    }
-
-    .horario-btn.active {
-        background-color: #0d6efd;
-        border-color: #0d6efd;
-        color: white;
-    }
-
-    .progress {
-        border-radius: 10px;
-        background-color: #e9ecef;
-    }
-
-    .progress-bar {
-        border-radius: 10px;
-        background-color: #0d6efd;
-        transition: width 0.3s ease;
-    }
-
-    .btn {
-        transition: all 0.2s ease-in-out;
-    }
-    
-    .btn:hover:not(:disabled) {
-        transform: translateY(-1px);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    }
-    
-    .btn:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-    }
-</style>
-
+} 
