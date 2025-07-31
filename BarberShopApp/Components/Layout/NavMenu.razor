@@ -1,0 +1,67 @@
+﻿@inject NavigationManager NavigationManager
+
+<div class="top-row ps-3 navbar navbar-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="/admin">
+            <i class="fas fa-cut me-2"></i>BarberShop
+        </a>
+    </div>
+</div>
+
+<input type="checkbox" title="Navigation menu" class="navbar-toggler" />
+
+<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
+    <nav class="flex-column">
+        <AuthorizeView Roles="Admin,Profissional">
+            <Authorized>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="/admin" Match="NavLinkMatch.All">
+                        <i class="fas fa-home me-2"></i> Dashboard
+                    </NavLink>
+                </div>
+
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="/admin/agendamentos">
+                        <i class="fas fa-calendar-check me-2"></i> Agendamentos
+                    </NavLink>
+                </div>
+
+                <AuthorizeView Roles="Admin" Context="adminContext">
+                    <Authorized>
+                        <div class="nav-item px-3">
+                            <NavLink class="nav-link" href="/admin/servicos">
+                                <i class="fas fa-scissors me-2"></i> Serviços
+                            </NavLink>
+                        </div>
+                    </Authorized>
+                </AuthorizeView>
+
+                <AuthorizeView Roles="Admin" Context="adminContext2">
+                    <Authorized>
+                        <div class="nav-item px-3">
+                            <NavLink class="nav-link" href="/admin/usuarios">
+                                <i class="fas fa-users me-2"></i> Usuários
+                            </NavLink>
+                        </div>
+                    </Authorized>
+                </AuthorizeView>
+
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="Account/Manage">
+                        <i class="fas fa-user me-2"></i> Perfil
+                    </NavLink>
+                </div>
+
+                <AuthorizeView Roles="Admin" Context="adminContext3">
+                    <Authorized>
+                        <div class="nav-item px-3">
+                            <NavLink class="nav-link" href="Account/Register">
+                                <i class="fas fa-user-plus me-2"></i> Novo Usuário
+                            </NavLink>
+                        </div>
+                    </Authorized>
+                </AuthorizeView>
+            </Authorized>
+        </AuthorizeView>
+    </nav>
+</div>

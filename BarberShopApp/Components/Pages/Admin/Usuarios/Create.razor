@@ -1,0 +1,449 @@
+@page "/admin/usuarios/create"
+@using BarberShopApp.Data
+@using BarberShopApp.Core.Models
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
+@inject UserManager<ApplicationUser> UserManager
+@inject NavigationManager NavigationManager
+@inject IDbContextFactory<ApplicationDbContext> DbFactory
+@attribute [Authorize(Roles = "Admin")]
+
+@rendermode InteractiveServer
+
+<PageTitle>Criar Usuário - BarberShop</PageTitle>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>Criar Novo Usuário</h2>
+                <a href="/admin/usuarios" class="btn btn-secondary">Voltar</a>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Dados do Usuário</h5>
+                </div>
+                <div class="card-body">
+                    <EditForm Model="Usuario" OnValidSubmit="CriarUsuario">
+                        <DataAnnotationsValidator />
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="nome" class="form-label">Nome Completo *</label>
+                                    <InputText id="nome" @bind-Value="Usuario.Nome" class="form-control" required />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="email" class="form-label">Email *</label>
+                                    <InputText id="email" @bind-Value="Usuario.Email" class="form-control" type="email" required />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                                                            <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="telefone" class="form-label">Telefone/Celular *</label>
+                                        <input type="text" id="telefone" @bind="Usuario.PhoneNumber" class="form-control" 
+                                               placeholder="(11) 99999-9999" maxlength="15" required />
+                                    </div>
+                                </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="username" class="form-label">Nome de Usuário *</label>
+                                    <InputText id="username" @bind-Value="Usuario.UserName" class="form-control" required />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="password" class="form-label">Senha *</label>
+                                    <InputText id="password" @bind-Value="Senha" class="form-control" type="password" required />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="confirmPassword" class="form-label">Confirmar Senha *</label>
+                                    <InputText id="confirmPassword" @bind-Value="ConfirmarSenha" class="form-control" type="password" required />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="perfil" class="form-label">Perfil *</label>
+                                    <InputSelect id="perfil" @bind-Value="PerfilSelecionado" class="form-control" required @onchange="OnPerfilChange">
+                                        <option value="">Selecione um perfil</option>
+                                        <option value="Admin">Administrador</option>
+                                        <option value="Profissional">Profissional</option>
+                                        <option value="Client">Cliente</option>
+                                    </InputSelect>
+                                </div>
+                            </div>
+                        </div>
+
+                        @* Campos específicos para Profissional *@
+                        @if (PerfilSelecionado == "Profissional")
+                        {
+                            <hr />
+                            <h5>Dados do Profissional</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="nomeProfissional" class="form-label">Nome do Profissional *</label>
+                                        <InputText id="nomeProfissional" @bind-Value="DadosProfissional.Nome" class="form-control" required />
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="telefoneProfissional" class="form-label">Telefone do Profissional *</label>
+                                        <input type="text" id="telefoneProfissional" @bind="DadosProfissional.Telefone" class="form-control" 
+                                               placeholder="(11) 99999-9999" maxlength="15" required />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="tipoDocumento" class="form-label">Tipo de Documento *</label>
+                                        <InputSelect id="tipoDocumento" @bind-Value="DadosProfissional.TipoDocumento" class="form-control" required>
+                                            <option value="">Selecione o Tipo de Documento</option>
+                                            @foreach (var type in Enum.GetValues<DocumentType>())
+                                            {
+                                                <option value="@type">@type.ToString()</option>
+                                            }
+                                        </InputSelect>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="documento" class="form-label">Número do Documento *</label>
+                                        <InputText id="documento" @bind-Value="DadosProfissional.Documento" class="form-control" required />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="dataNascimento" class="form-label">Data de Nascimento *</label>
+                                        <InputDate id="dataNascimento" @bind-Value="DadosProfissional.DataNacimento" class="form-control" required />
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="percentualComissao" class="form-label">Percentual de Comissão</label>
+                                        <InputNumber id="percentualComissao" @bind-Value="DadosProfissional.PercentualDeComissao" class="form-control" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="imgUrl" class="form-label">URL da Imagem *</label>
+                                        <InputText id="imgUrl" @bind-Value="DadosProfissional.ImgUrl" class="form-control" required />
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <div class="form-check">
+                                            <InputCheckbox id="fumante" @bind-Value="DadosProfissional.Fumante" class="form-check-input" />
+                                            <label class="form-check-label" for="fumante">Fumante</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            @* Seção de Especialidades *@
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="mb-3">
+                                        <label class="form-label">Especialidades (Serviços) *</label>
+                                        <div class="border rounded p-3" style="max-height: 200px; overflow-y: auto;">
+                                            @if (ServicosDisponiveis != null && ServicosDisponiveis.Any())
+                                            {
+                                                @foreach (var servico in ServicosDisponiveis)
+                                                {
+                                                    <div class="form-check">
+                                                        <InputCheckbox id="@($"servico_{servico.Id}")" 
+                                                                     @bind-Value="servico.Selecionado" 
+                                                                     class="form-check-input" />
+                                                        <label class="form-check-label" for="@($"servico_{servico.Id}")">
+                                                            @servico.Nome - R$ @servico.Preco.ToString("F2") (@servico.DuracaoEmMinutos min)
+                                                        </label>
+                                                    </div>
+                                                }
+                                            }
+                                            else
+                                            {
+                                                <p class="text-muted">Nenhum serviço disponível. Crie serviços primeiro.</p>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+
+                        @if (!string.IsNullOrEmpty(mensagemErro))
+                        {
+                            <div class="alert alert-danger" role="alert">
+                                @mensagemErro
+                            </div>
+                        }
+
+                        @if (!string.IsNullOrEmpty(mensagemSucesso))
+                        {
+                            <div class="alert alert-success" role="alert">
+                                @mensagemSucesso
+                            </div>
+                        }
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary" disabled="@isLoading">
+                                @if (isLoading)
+                                {
+                                    <span>Salvando...</span>
+                                }
+                                else
+                                {
+                                    <span>Salvar Usuário</span>
+                                }
+                            </button>
+                            <a href="/admin/usuarios" class="btn btn-secondary">Cancelar</a>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private ApplicationUser Usuario = new();
+    private string Senha = "";
+    private string ConfirmarSenha = "";
+    private string PerfilSelecionado = "";
+    private bool isLoading = false;
+    private string mensagemErro = "";
+    private string mensagemSucesso = "";
+    private Profissional DadosProfissional = new();
+    private List<ServicoSelecionavel> ServicosDisponiveis = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CarregarServicos();
+    }
+
+    private async Task CarregarServicos()
+    {
+        try
+        {
+            using var context = await DbFactory.CreateDbContextAsync();
+            var servicos = await context.Servico.ToListAsync();
+            ServicosDisponiveis = servicos.Select(s => new ServicoSelecionavel
+            {
+                Id = s.Id,
+                Nome = s.Nome,
+                Preco = s.Preco,
+                DuracaoEmMinutos = s.DuracaoEmMinutos,
+                Selecionado = false
+            }).ToList();
+        }
+        catch (Exception ex)
+        {
+            mensagemErro = "Erro ao carregar serviços: " + ex.Message;
+        }
+    }
+
+    private void OnPerfilChange()
+    {
+        if (PerfilSelecionado != "Profissional")
+        {
+            DadosProfissional = new();
+        }
+        StateHasChanged();
+    }
+
+    private async Task CriarUsuario()
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(PerfilSelecionado))
+            {
+                mensagemErro = "Selecione um perfil para o usuário.";
+                return;
+            }
+
+            if (Senha != ConfirmarSenha)
+            {
+                mensagemErro = "As senhas não coincidem.";
+                return;
+            }
+
+            if (Senha.Length < 6)
+            {
+                mensagemErro = "A senha deve ter pelo menos 6 caracteres.";
+                return;
+            }
+
+            // Validação dos campos do profissional
+            if (PerfilSelecionado == "Profissional")
+            {
+                if (string.IsNullOrWhiteSpace(DadosProfissional.Nome))
+                {
+                    mensagemErro = "O nome do profissional é obrigatório.";
+                    return;
+                }
+                if (string.IsNullOrWhiteSpace(DadosProfissional.Telefone))
+                {
+                    mensagemErro = "O telefone do profissional é obrigatório.";
+                    return;
+                }
+                if (string.IsNullOrWhiteSpace(DadosProfissional.Documento))
+                {
+                    mensagemErro = "O documento do profissional é obrigatório.";
+                    return;
+                }
+                if (DadosProfissional.DataNacimento == default)
+                {
+                    mensagemErro = "A data de nascimento do profissional é obrigatória.";
+                    return;
+                }
+                if (string.IsNullOrWhiteSpace(DadosProfissional.ImgUrl))
+                {
+                    mensagemErro = "A URL da imagem do profissional é obrigatória.";
+                    return;
+                }
+            }
+
+            isLoading = true;
+            mensagemErro = "";
+            mensagemSucesso = "";
+
+            // Verificar se email já existe
+            var existingUser = await UserManager.FindByEmailAsync(Usuario.Email);
+            if (existingUser != null)
+            {
+                mensagemErro = "Este email já está sendo usado por outro usuário.";
+                isLoading = false;
+                return;
+            }
+
+            // Verificar se username já existe
+            existingUser = await UserManager.FindByNameAsync(Usuario.UserName);
+            if (existingUser != null)
+            {
+                mensagemErro = "Este nome de usuário já está sendo usado.";
+                isLoading = false;
+                return;
+            }
+
+            // Criar o usuário
+            var result = await UserManager.CreateAsync(Usuario, Senha);
+            if (!result.Succeeded)
+            {
+                mensagemErro = string.Join(", ", result.Errors.Select(e => e.Description));
+                isLoading = false;
+                return;
+            }
+
+            // Adicionar role
+            var roleResult = await UserManager.AddToRoleAsync(Usuario, PerfilSelecionado);
+            if (!roleResult.Succeeded)
+            {
+                mensagemErro = "Erro ao adicionar perfil: " + string.Join(", ", roleResult.Errors.Select(e => e.Description));
+                isLoading = false;
+                return;
+            }
+
+            // Se for profissional, criar o registro de profissional
+            if (PerfilSelecionado == "Profissional")
+            {
+                try
+                {
+                    using var context = await DbFactory.CreateDbContextAsync();
+                    
+                    var profissional = new Profissional
+                    {
+                        Nome = DadosProfissional.Nome,
+                        Email = Usuario.Email,
+                        Telefone = DadosProfissional.Telefone,
+                        TipoDocumento = DadosProfissional.TipoDocumento,
+                        Documento = DadosProfissional.Documento,
+                        DataNacimento = DadosProfissional.DataNacimento,
+                        Fumante = DadosProfissional.Fumante,
+                        ImgUrl = DadosProfissional.ImgUrl,
+                        PercentualDeComissao = DadosProfissional.PercentualDeComissao,
+                        DataCriacao = DateTime.UtcNow,
+                        DataAtualizacao = DateTime.UtcNow
+                    };
+
+                    await context.Profissional.AddAsync(profissional);
+                    await context.SaveChangesAsync();
+
+                    // Adicionar especialidades selecionadas
+                    var especialidadesSelecionadas = ServicosDisponiveis.Where(s => s.Selecionado).ToList();
+                    if (especialidadesSelecionadas.Any())
+                    {
+                        // Recarregar o profissional para garantir que está sendo rastreado
+                        var profissionalRecarregado = await context.Profissional
+                            .Include(p => p.Especialidades)
+                            .FirstOrDefaultAsync(p => p.Id == profissional.Id);
+                        
+                        if (profissionalRecarregado != null)
+                        {
+                            var servicosIds = especialidadesSelecionadas.Select(s => s.Id).ToList();
+                            var servicos = await context.Servico.Where(s => servicosIds.Contains(s.Id)).ToListAsync();
+                            
+                            // Adicionar serviços à coleção
+                            foreach (var servico in servicos)
+                            {
+                                profissionalRecarregado.Especialidades.Add(servico);
+                            }
+                            
+                            await context.SaveChangesAsync();
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    mensagemErro = "Erro ao salvar dados do profissional: " + ex.Message;
+                    isLoading = false;
+                    return;
+                }
+            }
+
+            mensagemSucesso = "Usuário criado com sucesso! Redirecionando...";
+            StateHasChanged();
+            
+            // Redirecionar após 1 segundo
+            await Task.Delay(1000);
+            NavigationManager.NavigateTo("/admin/usuarios");
+        }
+        catch (Exception ex)
+        {
+            mensagemErro = "Erro ao criar usuário: " + ex.Message;
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    public class ServicoSelecionavel
+    {
+        public int Id { get; set; }
+        public string Nome { get; set; } = "";
+        public decimal Preco { get; set; }
+        public int DuracaoEmMinutos { get; set; }
+        public bool Selecionado { get; set; }
+    }
+} 

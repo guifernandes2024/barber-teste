@@ -1,0 +1,280 @@
+@page "/admin/usuarios"
+@using Microsoft.EntityFrameworkCore
+@using BarberShopApp.Data
+@using BarberShopApp.Core.Models
+@using Microsoft.AspNetCore.Identity
+@inject IDbContextFactory<ApplicationDbContext> DbFactory
+@inject UserManager<ApplicationUser> UserManager
+@inject RoleManager<IdentityRole> RoleManager
+@attribute [Authorize(Roles = "Admin")]
+
+@rendermode InteractiveServer
+<PageTitle>Gerenciar Usuários - BarberShop</PageTitle>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-users me-2"></i>Gerenciar Usuários</h2>
+                <a href="/admin/usuarios/create" class="btn btn-primary">
+                    <i class="fas fa-user-plus me-2"></i>Novo Usuário
+                </a>
+            </div>
+
+            @if (isLoading)
+            {
+                <div class="text-center">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Carregando...</span>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="card">
+                    <div class="card-header">
+                        <div class="row align-items-center">
+                            <div class="col-md-6">
+                                <h5 class="mb-0">Lista de Usuários</h5>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" placeholder="Buscar usuário..." 
+                                           @bind="searchTerm" @bind:event="oninput" />
+                                    <button class="btn btn-outline-secondary" type="button" @onclick="FiltrarUsuarios">
+                                        <i class="fas fa-search"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        @if (Usuarios != null && Usuarios.Any())
+                        {
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th>Nome</th>
+                                            <th>Email</th>
+                                            <th>Telefone</th>
+                                            <th>Perfil</th>
+                                            <th>Status</th>
+                                            <th>Ações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var usuario in Usuarios)
+                                        {
+                                            <tr>
+                                                <td>
+                                                    <div class="d-flex align-items-center">
+                                                        <div class="avatar me-3">
+                                                            <i class="fas fa-user-circle fa-2x text-muted"></i>
+                                                        </div>
+                                                        <div>
+                                                            <strong>@usuario.Nome</strong>
+                                                            @if (usuario.UserName == "admin")
+                                                            {
+                                                                <span class="badge bg-danger ms-2">Super Admin</span>
+                                                            }
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>@usuario.Email</td>
+                                                <td>@usuario.PhoneNumber</td>
+                                                <td>
+                                                    @{
+                                                        var roles = GetUserRoles(usuario);
+                                                        foreach (var role in roles)
+                                                        {
+                                                            <span class="badge @GetRoleBadgeClass(role) me-1">@role</span>
+                                                        }
+                                                    }
+                                                </td>
+                                                <td>
+                                                    @if (usuario.EmailConfirmed)
+                                                    {
+                                                        <span class="badge bg-success">Ativo</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="badge bg-warning">Pendente</span>
+                                                    }
+                                                </td>
+                                                <td>
+                                                    <div class="btn-group" role="group">
+                                                        <a href="/admin/usuarios/edit/@usuario.Id" class="btn btn-sm btn-outline-primary">
+                                                            <i class="fas fa-edit"></i>
+                                                        </a>
+
+                                                        <a href="/admin/usuarios/details/@usuario.Id" class="btn btn-sm btn-outline-info">
+                                                            <i class="fas fa-eye"></i>
+                                                        </a>
+                                                        @if (usuario.UserName != "admin")
+                                                        {
+                                                            <button type="button" class="btn btn-sm btn-outline-danger" @onclick="() => ConfirmarExclusao(usuario)">
+                                                                <i class="fas fa-trash"></i>
+                                                            </button>
+                                                        }
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="text-center py-5">
+                                <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                                <h5>Nenhum usuário encontrado</h5>
+                                <p class="text-muted">Não há usuários cadastrados no sistema.</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@if (showDeleteModal)
+{
+    <div class="modal fade show" style="display: block;" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirmar Exclusão</h5>
+                    <button type="button" class="btn-close" @onclick="CancelarExclusao"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Tem certeza que deseja excluir o usuário <strong>@usuarioParaExcluir?.Nome</strong>?</p>
+                    <p class="text-danger">Esta ação não pode ser desfeita.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CancelarExclusao" disabled="@isDeleting">Cancelar</button>
+                    <button type="button" class="btn btn-danger" @onclick="ExcluirUsuario" disabled="@isDeleting">
+                        @if (isDeleting)
+                        {
+                            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                            <span>Excluindo...</span>
+                        }
+                        else
+                        {
+                            <span>Excluir</span>
+                        }
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop fade show"></div>
+}
+
+@code {
+    private List<ApplicationUser>? Usuarios;
+    private bool isLoading = true;
+    private bool isDeleting = false;
+    private string searchTerm = "";
+    private bool showDeleteModal = false;
+    private ApplicationUser? usuarioParaExcluir;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CarregarUsuarios();
+    }
+
+    private async Task CarregarUsuarios()
+    {
+        isLoading = true;
+        try
+        {
+            using var context = await DbFactory.CreateDbContextAsync();
+            Usuarios = await context.Users
+                .OrderBy(u => u.Nome)
+                .ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            // Log do erro
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private IList<string> GetUserRoles(ApplicationUser user)
+    {
+        return UserManager.GetRolesAsync(user).Result;
+    }
+
+    private async Task<IList<string>> GetUserRolesAsync(ApplicationUser user)
+    {
+        return await UserManager.GetRolesAsync(user);
+    }
+
+    private string GetRoleBadgeClass(string role)
+    {
+        return role switch
+        {
+            "Admin" => "bg-danger",
+            "Profissional" => "bg-primary",
+            "Client" => "bg-success",
+            _ => "bg-secondary"
+        };
+    }
+
+    private void FiltrarUsuarios()
+    {
+        // Implementar filtro se necessário
+    }
+
+    private void VerDetalhes(ApplicationUser usuario)
+    {
+        // Implementar visualização de detalhes
+    }
+
+    private void ConfirmarExclusao(ApplicationUser usuario)
+    {
+        usuarioParaExcluir = usuario;
+        showDeleteModal = true;
+    }
+
+    private void CancelarExclusao()
+    {
+        showDeleteModal = false;
+        usuarioParaExcluir = null;
+    }
+
+    private async Task ExcluirUsuario()
+    {
+        if (usuarioParaExcluir != null)
+        {
+            isDeleting = true;
+            try
+            {
+                var result = await UserManager.DeleteAsync(usuarioParaExcluir);
+                if (result.Succeeded)
+                {
+                    await CarregarUsuarios();
+                    CancelarExclusao();
+                }
+                else
+                {
+                    // Mostrar erro se necessário
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log do erro
+            }
+            finally
+            {
+                isDeleting = false;
+            }
+        }
+    }
+} 

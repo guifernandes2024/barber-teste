@@ -1,0 +1,52 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <base href="/" />
+    <link rel="stylesheet" href="bootstrap/bootstrap.min.css" />
+    <link rel="stylesheet" href="app.css" />
+    <link rel="stylesheet" href="BarberShopApp.styles.css" />
+    <link rel="stylesheet" href="css/phoneMask.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="icon" type="image/png" href="favicon.png" />
+    <HeadOutlet />
+</head>
+
+<body>
+    <Routes />
+    <script src="_framework/blazor.web.js"></script>
+    <script src="/js/scrollHelpers.js"></script>
+    <script src="/js/phoneMask.js"></script>
+    <script src="https://unpkg.com/imask"></script>
+    <script>
+        window.aplicarMascaraPreco = function (elementId) {
+            var element = document.getElementById(elementId);
+            if (!element) return;
+
+            var maskOptions = {
+                mask: Number,
+                scale: 2,
+                signed: false,
+                thousandsSeparator: '.',
+                padFractionalZeros: true,
+                normalizeZeros: true,
+                radix: ',',
+                mapToRadix: ['.']
+            };
+
+            IMask(element, maskOptions);
+        };
+
+        // Função para ser chamada pelo Blazor após renderização
+        window.reinitializePhoneMasks = function() {
+            if (typeof initializePhoneMasks === 'function') {
+                initializePhoneMasks();
+            }
+        };
+    </script>
+
+</body>
+
+</html>

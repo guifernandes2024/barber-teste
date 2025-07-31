@@ -82,7 +82,9 @@
                     <ValidationMessage For="() => Input.NomeProfissional" class="text-danger" />
                 </div>
                 <div class="form-floating mb-3">
-                    <InputText @bind-Value="Input.TelefoneProfissional" class="form-control" placeholder="(xx) xxxxx-xxxx" />
+                    <input type="text" id="telefoneProfissional" class="form-control" 
+                           @bind="Input.TelefoneProfissional" 
+                           placeholder="(11) 99999-9999" maxlength="15" />
                     <label for="telefoneProfissional">Telefone</label>
                     <ValidationMessage For="() => Input.TelefoneProfissional" class="text-danger" />
                 </div>

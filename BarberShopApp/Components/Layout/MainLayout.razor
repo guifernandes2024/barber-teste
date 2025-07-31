@@ -1,0 +1,111 @@
+﻿@inherits LayoutComponentBase
+@implements IDisposable
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IJSRuntime JSRuntime
+
+<div class="page">
+    <div class="sidebar">
+        <NavMenu />
+    </div>
+
+    <main>
+        <div class="top-row px-4">
+            <AuthorizeView>
+                <Authorized>
+                    <div class="d-flex align-items-center">
+                        <span class="me-3">Bem-vindo, @UserRoleText!</span>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <form action="Account/Logout" method="post">
+                            <AntiforgeryToken />
+                            <input type="hidden" name="ReturnUrl" value="@currentUrl" />
+                            <button type="submit" class="btn btn-outline-danger btn-sm">
+                                <i class="fas fa-sign-out-alt me-1"></i>Sair
+                            </button>
+                        </form>
+                    </div>
+                </Authorized>
+                <NotAuthorized>
+                    <div class="d-flex align-items-center">
+                        <span class="me-3">Visitante</span>
+                        <a href="Account/Login" class="btn btn-primary btn-sm">
+                            <i class="fas fa-sign-in-alt me-1"></i>Entrar
+                        </a>
+                    </div>
+                </NotAuthorized>
+            </AuthorizeView>
+        </div>
+
+        <article class="content px-4">
+            @Body
+        </article>
+    </main>
+</div>
+@code {
+    private string? currentUrl;
+
+    private string UserRoleText = "Visitante";
+    private bool isDisposed = false;
+
+
+    protected override void OnInitialized()
+    {
+        currentUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+        NavigationManager.LocationChanged += OnLocationChanged;
+    }
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        currentUrl = NavigationManager.ToBaseRelativePath(e.Location);
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        NavigationManager.LocationChanged -= OnLocationChanged;
+    }
+    protected override async Task OnInitializedAsync()
+    {
+        await UpdateUserRoleText();
+    }
+
+    private async Task UpdateUserRoleText()
+    {
+        if (isDisposed) return;
+        
+        try
+        {
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+
+            if (user.Identity?.IsAuthenticated == true)
+            {
+                if (user.IsInRole("Admin"))
+                {
+                    UserRoleText = "Administrador";
+                }
+                else if (user.IsInRole("Profissional"))
+                {
+                    UserRoleText = "Profissional";
+                }
+                else if (user.IsInRole("Client"))
+                {
+                    UserRoleText = "Cliente";
+                }
+                else
+                {
+                    UserRoleText = user.Identity.Name ?? "Usuário";
+                }
+            }
+            else
+            {
+                UserRoleText = "Visitante";
+            }
+        }
+        catch
+        {
+            UserRoleText = "Visitante";
+        }
+    }
+}

@@ -1,0 +1,62 @@
+@page "/admin/agendamentos/details"
+@attribute [Authorize]
+@using Microsoft.EntityFrameworkCore
+@using BarberShopApp.Core.Models
+@inject IDbContextFactory<BarberShopApp.Data.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Details</PageTitle>
+
+<h1>Details</h1>
+
+<div>
+    <h2>Agendamento</h2>
+    <hr />
+    @if (agendamento is null)
+    {
+        <p><em>Loading...</em></p>
+    }
+    else {
+        <dl class="row">
+            <dt class="col-sm-2">Id</dt>
+            <dd class="col-sm-10">@agendamento.Id</dd>
+            <dt class="col-sm-2">DataHora</dt>
+            <dd class="col-sm-10">@agendamento.DataHora</dd>
+            <dt class="col-sm-2">NomeDoCliente</dt>
+            <dd class="col-sm-10">@agendamento.NomeDoCliente</dd>
+            <dt class="col-sm-2">NumeroDoCliente</dt>
+            <dd class="col-sm-10">@agendamento.NumeroDoCliente</dd>
+            <dt class="col-sm-2">Serviços:</dt>
+			@foreach (var servico in @agendamento.Servicos)
+			{
+				<dd class="col-sm-10">@servico.Nome</dd>
+			}
+            <dt class="col-sm-2">Observacoes</dt>
+            <dd class="col-sm-10">@agendamento.Observacoes</dd>
+        </dl>
+        <div>
+            <a href="@($"/admin/agendamentos/edit?id={agendamento.Id}")" class="btn btn-primary">Edit</a> |
+            <a href="/admin/agendamentos" class="btn btn-secondary">Back to List</a>
+        </div>
+    }
+</div>
+
+@code {
+    private Agendamento? agendamento;
+
+    [SupplyParameterFromQuery]
+    private int Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        agendamento = await context.Agendamento
+		.Include(m => m.Servicos)
+        .FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (agendamento is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+}

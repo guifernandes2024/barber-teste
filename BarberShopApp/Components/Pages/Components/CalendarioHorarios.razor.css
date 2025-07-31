@@ -1,0 +1,59 @@
+﻿.calendario-horarios {
+    background-color: #2d2d2d;
+    border-radius: 8px;
+    padding: 20px;
+}
+
+.horarios-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.horario-btn {
+    padding: 10px;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+}
+
+    .horario-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+
+    .horario-btn.active {
+        background-color: #007bff;
+        border-color: #007bff;
+        color: white;
+    }
+
+.form-control, .form-select {
+    background-color: #404040;
+    border: 1px solid #505050;
+    color: #ffffff;
+}
+
+    .form-control:focus, .form-select:focus {
+        background-color: #404040;
+        border-color: #007bff;
+        color: #ffffff;
+        box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.25);
+    }
+
+.alert {
+    background-color: #2d2d2d;
+    border: 1px solid #404040;
+}
+
+.alert-success {
+    background-color: #1e4d2b;
+    border-color: #28a745;
+    color: #d4edda;
+}
+
+.alert-info {
+    background-color: #1e3a5f;
+    border-color: #17a2b8;
+    color: #d1ecf1;
+}

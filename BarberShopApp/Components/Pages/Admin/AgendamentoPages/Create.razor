@@ -1,0 +1,242 @@
+@page "/admin/agendamentos/create"
+@attribute [Authorize]
+@using Microsoft.EntityFrameworkCore
+@using BarberShopApp.Components.Pages.Components
+@using BarberShopApp.Core.Models
+@using BarberShopApp.Core.Services
+@using Microsoft.JSInterop
+@inject IDbContextFactory<BarberShopApp.Data.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+@inject HorarioService HorarioService
+@inject IJSRuntime JSRuntime
+
+@rendermode InteractiveServer
+<PageTitle>Novo Agendamento - Barbearia</PageTitle>
+
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">📅 Novo Agendamento</h1>
+
+            <!-- Passo 1: Seleção de Serviços -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list-ul me-2"></i>
+                        Passo 1: Selecionar Serviços
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <SelecaoServicos Servicos="Servicos"
+                                    ServicosSelecionados="ServicosSelecionados"
+                                    ServicosSelecionadosChanged="OnServicosSelecionadosChanged" />
+                </div>
+            </div>
+
+            <!-- Passo 2: Seleção de Profissional -->
+            @if (ServicosSelecionados.Any())
+            {
+                <div class="card booking-card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-user-tie me-2"></i>
+                            Passo 2: Selecionar Profissional
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <SelecaoProfissional Profissionais="Profissionais"
+                                                        ProfissionalSelecionado="ProfissionalSelecionado"
+                                                        ProfissionalSelecionadoChanged="OnProfissionalSelecionadoChanged"
+                                                        ServicosSelecionados="ServicosSelecionados" />
+                    </div>
+                </div>
+            }
+
+            <!-- Passo 3: Seleção de Data e Horário -->
+            @if (ServicosSelecionados.Any() && ProfissionalSelecionado != null)
+            {
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-calendar-alt me-2"></i>
+                            Passo 3: Selecionar Data e Horário
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <CalendarioHorarios ServicosSelecionados="ServicosSelecionados"
+                                            ProfissionalSelecionado="ProfissionalSelecionado"
+                                            HorarioSelecionado="HorarioSelecionado"
+                                            HorarioSelecionadoChanged="OnHorarioSelecionado" />
+                    </div>
+                </div>
+            }
+
+            <!-- Passo 4: Dados do Cliente -->
+            @if (HorarioSelecionado.HasValue)
+            {
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-user me-2"></i>
+                            Passo 4: Dados do Cliente
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <EditForm Model="Agendamento" OnValidSubmit="AddAgendamento">
+                            <DataAnnotationsValidator />
+                            <ValidationSummary class="text-danger" role="alert"/>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="nomeDoCliente" class="form-label">Nome do Cliente:</label> 
+                                        <InputText id="nomeDoCliente" @bind-Value="Agendamento.NomeDoCliente" class="form-control" required /> 
+                                        <ValidationMessage For="() => Agendamento.NomeDoCliente" class="text-danger" /> 
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="numeroDoCliente" class="form-label">Celular/Whatsapp:</label>
+                                        <input type="text" id="numeroDoCliente" class="form-control"
+                                        @bind="Agendamento.NumeroDoCliente"
+                                        maxlength="15" required
+                                        placeholder="(11) 99999-9999" />
+                                        <ValidationMessage For="() => Agendamento.NumeroDoCliente" class="text-danger" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="observacoes" class="form-label">Observações:</label> 
+                                <InputTextArea id="observacoes" @bind-Value="Agendamento.Observacoes" class="form-control" rows="3" /> 
+                                <ValidationMessage For="() => Agendamento.Observacoes" class="text-danger" /> 
+                            </div>
+
+                            <div class="alert alert-info">
+                                <strong>Resumo do Agendamento:</strong><br />
+                                <strong>Data/Hora:</strong> @HorarioSelecionado.Value.ToString("dd/MM/yyyy HH:mm")<br />
+                                <strong>Profissional:</strong> @ProfissionalSelecionado?.Nome<br />
+                                <strong>Serviços:</strong> @string.Join(", ", ServicosSelecionados.Select(s => s.Nome))<br />
+                                <strong>Duração:</strong> @ServicosSelecionados.Sum(s => s.DuracaoEmMinutos) minutos<br />
+                                <strong>Valor Total:</strong> R$ @ServicosSelecionados.Sum(s => s.Preco).ToString("F2")
+                            </div>
+
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fas fa-check"></i> Confirmar Agendamento
+                                </button>
+                                <a href="/admin/agendamentos" class="btn btn-secondary">
+                                    <i class="fas fa-arrow-left"></i> Voltar
+                                </a>
+                            </div>
+                        </EditForm>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private Agendamento Agendamento { get; set; } = new();
+    private List<Servico> Servicos { get; set; } = new();
+    private List<Servico> ServicosSelecionados { get; set; } = new();
+    private List<Profissional> Profissionais { get; set; } = new();
+    private Profissional? ProfissionalSelecionado { get; set; }
+    private DateTime? HorarioSelecionado { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Agendamento = new Agendamento();
+        await CarregarServicos();
+        await CarregarProfissionais();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try
+            {
+                await JSRuntime.InvokeVoidAsync("reinitializePhoneMasks");
+            }
+            catch (Exception ex)
+            {
+                // Log do erro mas não interrompe a aplicação
+                Console.WriteLine($"Erro ao inicializar máscaras: {ex.Message}");
+            }
+        }
+    }
+
+    private async Task CarregarServicos()
+    {
+        using var context = DbFactory.CreateDbContext();
+        Servicos = await context.Servico.ToListAsync();
+    }
+
+    private async Task CarregarProfissionais()
+    {
+        using var context = DbFactory.CreateDbContext();
+        Profissionais = await context.Profissional
+            .Include(p => p.Especialidades)
+            .ToListAsync();
+    }
+
+    private async Task OnServicosSelecionadosChanged(List<Servico> servicos)
+    {
+        ServicosSelecionados = servicos;
+        // Limpar seleções dependentes quando serviços mudam
+        ProfissionalSelecionado = null;
+        HorarioSelecionado = null;
+        StateHasChanged();
+    }
+
+    private async Task OnProfissionalSelecionadoChanged(Profissional? profissional)
+    {
+        ProfissionalSelecionado = profissional;
+        // Limpar horário quando profissional muda
+        HorarioSelecionado = null;
+        StateHasChanged();
+    }
+
+    private async Task OnHorarioSelecionado(DateTime horario)
+    {
+        HorarioSelecionado = horario;
+        Agendamento.DataHora = horario;
+        Agendamento.ProfissionalId = ProfissionalSelecionado?.Id ?? 0;
+        StateHasChanged();
+    }
+
+    private async Task AddAgendamento()
+    {
+        if (!HorarioSelecionado.HasValue || ProfissionalSelecionado == null || !ServicosSelecionados.Any())
+        {
+            return;
+        }
+
+        try
+        {
+            using var context = DbFactory.CreateDbContext();
+
+            // Configura o agendamento
+            Agendamento.DataHora = HorarioSelecionado.Value;
+            Agendamento.ProfissionalId = ProfissionalSelecionado.Id;
+
+            // Busca os serviços existentes no banco de dados
+            var servicosIds = ServicosSelecionados.Select(s => s.Id).ToList();
+            var servicosExistentes = await context.Servico.Where(s => servicosIds.Contains(s.Id)).ToListAsync();
+            Agendamento.Servicos = servicosExistentes;
+
+            // Adiciona o agendamento ao contexto
+            context.Agendamento.Add(Agendamento);
+            await context.SaveChangesAsync();
+
+            NavigationManager.NavigateTo("/admin/agendamentos");
+        }
+        catch (Exception ex)
+        {
+            // Tratar erro
+            Console.WriteLine($"Erro ao criar agendamento: {ex.Message}");
+        }
+    }
+}

@@ -1,0 +1,72 @@
+@inject IJSRuntime JS
+
+<!-- Botão Voltar -->
+@if (CurrentStep > 1)
+{
+    <div class="row mt-3">
+        <div class="col-12">
+            <button type="button" class="btn btn-secondary me-2" @onclick="OnPreviousStep">
+                <i class="fas fa-arrow-left me-1"></i>
+                Voltar
+            </button>
+        </div>
+    </div>
+}
+
+<!-- Botão Próximo -->
+@if (CurrentStep < TotalSteps)
+{
+    <div class="row mt-3">
+        <div class="col-12">
+            <button type="button" class="btn btn-primary" @onclick="OnNextStep" disabled="@(!CanProceed)">
+                @if (IsLoading)
+                {
+                    <span class="spinner-border spinner-border-sm me-2"></span>
+                    <span>Carregando...</span>
+                }
+                else
+                {
+                    <span>Próximo</span>
+                    <i class="fas fa-arrow-right ms-1"></i>
+                }
+            </button>
+        </div>
+    </div>
+}
+
+<!-- Botão Confirmar -->
+@if (CurrentStep == TotalSteps && CanProceed)
+{
+    <div class="row mt-3">
+        <div class="col-12">
+            <button type="button" class="btn btn-success btn-lg" @onclick="OnFinish" disabled="@IsLoading">
+                @if (IsLoading)
+                {
+                    <span class="spinner-border spinner-border-sm me-2"></span>
+                    <span>Finalizando...</span>
+                }
+                else
+                {
+                    <i class="fas fa-check me-2"></i>
+                    <span>Confirmar Agendamento</span>
+                }
+            </button>
+        </div>
+    </div>
+}
+
+<style>
+    .btn {
+        transition: all 0.2s ease-in-out;
+    }
+    
+    .btn:hover:not(:disabled) {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    
+    .btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+</style> 

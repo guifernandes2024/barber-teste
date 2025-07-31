@@ -1,0 +1,99 @@
+@using BarberShopApp.Core.Models
+
+<div class="selecao-servicos">
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">
+                <i class="fas fa-list-ul me-2"></i>
+                Selecionar Serviços
+            </h5>
+        </div>
+        <div class="card-body">
+            @if (Servicos != null && Servicos.Count > 0)
+            {
+                <div class="row">
+                    @for (int i = 0; i < Servicos.Count; i++)
+                    {
+                        var servico = Servicos[i];
+                        <div class="col-md-6 col-lg-4 mb-3">
+                            <div class="card h-100 servico-card @(ServicosSelecionados.Any(s => s.Id == servico.Id) ? "border-primary" : "")">
+                                <div class="card-body">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" 
+                                               id="servico-@servico.Id" 
+                                               @onchange="@(() => ToggleServico(servico))"
+                                               checked="@ServicosSelecionados.Any(s => s.Id == servico.Id)" />
+                                        <label class="form-check-label" for="servico-@servico.Id">
+                                            <strong>@servico.Nome</strong>
+                                        </label>
+                                    </div>
+                                    <div class="mt-2">
+                                        <small class="text-muted">
+                                            <i class="fas fa-clock me-1"></i>@servico.DuracaoEmMinutos min
+                                        </small>
+                                        <br />
+                                        <small class="text-success">
+                                            <i class="fas fa-dollar-sign me-1"></i>@servico.Preco.ToString("F2")
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                @if (ServicosSelecionados.Any())
+                {
+                    <div class="mt-3">
+                        <div class="alert alert-info">
+                            <h6><i class="fas fa-info-circle me-2"></i>Resumo dos Serviços Selecionados:</h6>
+                            <ul class="mb-0">
+                                @foreach (var servico in ServicosSelecionados)
+                                {
+                                    <li>@servico.Nome - @servico.DuracaoEmMinutos min - R$ @servico.Preco.ToString("F2")</li>
+                                }
+                            </ul>
+                            <hr class="my-2" />
+                            <div class="d-flex justify-content-between">
+                                <strong>Total de Tempo:</strong>
+                                <strong>@ServicosSelecionados.Sum(s => s.DuracaoEmMinutos) min</strong>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <strong>Valor Total:</strong>
+                                <strong class="text-success">R$ @ServicosSelecionados.Sum(s => s.Preco).ToString("F2")</strong>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Nenhum serviço disponível no momento.
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+    .servico-card {
+        transition: all 0.2s ease-in-out;
+        cursor: pointer;
+    }
+
+    .servico-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .servico-card.border-primary {
+        border-width: 2px !important;
+    }
+
+    .form-check-input:checked {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+    }
+</style> 

@@ -1,0 +1,76 @@
+﻿.registe-container {
+display: flex;
+align-items: center;
+justify-content: center;
+padding: 20px;
+min-height: calc(100vh - 56px); /* Ajuste conforme o tamanho do seu cabeçalho/rodapé */
+}
+
+.Register-card {
+background-color: #2d2d2d;
+border: 1px solid #404040;
+border-radius: 12px;
+padding: 40px;
+width: 100%;
+max-width: 600px; /* Aumentado para acomodar mais campos */
+box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+color: #e0e0e0; /* Cor do texto geral */
+}
+
+.Register-card h1, .Register-card h2, .Register-card h4 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #fff; /* Cor do título */
+}
+
+.Register-card hr {
+    border-color: #555;
+    margin-bottom: 30px;
+}
+
+.Register-card .form-label {
+    color: #e0e0e0; /* Cor dos labels normais */
+}
+
+.Register-card .form-floating label {
+    color: #ccc; /* Cor dos labels para form-floating */
+}
+
+.Register-card .form-control,
+.Register-card .form-select {
+    background-color: #3a3a3a;
+    border: 1px solid #555;
+    color: #e0e0e0;
+}
+
+    .Register-card .form-control:focus,
+    .Register-card .form-select:focus {
+        background-color: #4a4a4a;
+        border-color: #007bff;
+        box-shadow: 0 0 0 0.25rem rgba(0, 123, 255, 0.25);
+    }
+
+.Register-card .btn-primary {
+    background-color: #007bff;
+    border-color: #007bff;
+    transition: background-color 0.3s ease;
+}
+
+    .Register-card .btn-primary:hover {
+        background-color: #0056b3;
+        border-color: #004085;
+    }
+
+.Register-card a {
+    color: #007bff;
+    text-decoration: none;
+}
+
+    .Register-card a:hover {
+        text-decoration: underline;
+    }
+
+.Register-card .text-danger {
+    color: #dc3545 !important;
+}
+

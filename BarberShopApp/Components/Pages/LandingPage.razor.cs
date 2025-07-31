@@ -1,0 +1,494 @@
+using Microsoft.AspNetCore.Components;
+using Microsoft.EntityFrameworkCore;
+using BarberShopApp.Core.Models;
+using BarberShopApp.Core.Services;
+using Microsoft.JSInterop;
+
+namespace BarberShopApp.Components.Pages
+{
+    public partial class LandingPage
+    {
+        [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
+        
+        private List<Servico> Servicos { get; set; } = new();
+        private List<Servico> ServicosSelecionados { get; set; } = new();
+        private List<Profissional> Profissionais { get; set; } = new();
+        private Profissional? ProfissionalSelecionado { get; set; }
+        private Agendamento Agendamento { get; set; } = new();
+        private DateTime? HorarioSelecionado { get; set; }
+        private DateTime? DataSelecionada { get; set; } = DateTime.Today;
+        private List<DateTime> HorariosDisponiveis { get; set; } = new();
+        private bool isLoading { get; set; } = false;
+        private string mensagemFeedback { get; set; } = string.Empty;
+        private string tipoMensagem { get; set; } = string.Empty;
+
+        // Multi-step properties
+        private int CurrentStep { get; set; } = 1;
+        private int TotalSteps { get; set; } = 4;
+
+        protected override async Task OnInitializedAsync()
+        {
+            try
+            {
+                // Inicialização explícita das listas
+                Servicos = new List<Servico>();
+                ServicosSelecionados = new List<Servico>();
+                Profissionais = new List<Profissional>();
+                Agendamento = new Agendamento();
+                
+                // Carregar dados do banco
+                await CarregarServicos();
+                await CarregarProfissionais();
+                
+                // Forçar atualização da UI
+                StateHasChanged();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erro na inicialização: {ex.Message}");
+                await ExibirMensagem($"Erro ao carregar dados: {ex.Message}", "error");
+            }
+        }
+
+        protected override async Task OnAfterRenderAsync(bool firstRender)
+        {
+            if (firstRender)
+            {
+                try
+                {
+                    await JSRuntime.InvokeVoidAsync("reinitializePhoneMasks");
+                    
+                    // Testar se o JavaScript está funcionando
+                    await JSRuntime.InvokeVoidAsync("testJavaScript");
+                    await JSRuntime.InvokeVoidAsync("checkFunctions");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Erro ao inicializar JavaScript: {ex.Message}");
+                }
+            }
+        }
+
+        public async Task CarregarServicos()
+        {
+            try
+            {
+                Console.WriteLine("Carregando serviços...");
+                using var context = DbFactory.CreateDbContext();
+                
+                Servicos = await context.Servico.ToListAsync();
+
+                
+                StateHasChanged();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erro ao carregar serviços: {ex.Message}");
+                await ExibirMensagem($"Erro ao carregar serviços: {ex.Message}", "error");
+            }
+        }
+
+        public async Task InicializarDados()
+        {
+            try
+            {
+                Console.WriteLine("Inicializando dados no banco...");
+                using var context = DbFactory.CreateDbContext();
+                
+                // Verificar se o banco existe
+                if (!await context.Database.CanConnectAsync())
+                {
+                    Console.WriteLine("Banco de dados não encontrado. Criando...");
+                    await context.Database.EnsureCreatedAsync();
+                }
+                
+                // Verificar se já existem dados
+                var servicosExistentes = await context.Servico.CountAsync();
+                if (servicosExistentes > 0)
+                {
+                    await ExibirMensagem("Dados já foram inicializados anteriormente.", "warning");
+                    await CarregarServicos();
+                    return;
+                }
+                
+                // Criar serviços
+                var servicos = new List<Servico>
+                {
+                    new Servico { Nome = "Corte Masculino", Descricao = "Corte tradicional masculino", Preco = 25.00m, DuracaoEmMinutos = 30, ImgUrl = "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" },
+                    new Servico { Nome = "Barba", Descricao = "Acabamento de barba", Preco = 15.00m, DuracaoEmMinutos = 20, ImgUrl = "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" },
+                    new Servico { Nome = "Corte + Barba", Descricao = "Corte completo com barba", Preco = 35.00m, DuracaoEmMinutos = 45, ImgUrl = "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" },
+                    new Servico { Nome = "Hidratação", Descricao = "Hidratação capilar", Preco = 40.00m, DuracaoEmMinutos = 60, ImgUrl = "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" }
+                };
+
+                context.Servico.AddRange(servicos);
+                await context.SaveChangesAsync();
+                
+                await ExibirMensagem($"Dados inicializados com sucesso! Criados {servicos.Count} serviços.", "success");
+                await CarregarServicos();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erro ao inicializar dados: {ex.Message}");
+                await ExibirMensagem($"Erro ao inicializar dados: {ex.Message}", "error");
+            }
+        }
+
+        private async Task CarregarProfissionais()
+        {
+            try
+            {
+                using var context = DbFactory.CreateDbContext();
+                Profissionais = await context.Profissional
+                    .Include(p => p.Especialidades)
+                    .ToListAsync();
+                
+                // Se não há profissionais, criar dados de exemplo
+                if (!Profissionais.Any())
+                {
+                    Profissionais = new List<Profissional>
+                    {
+                        new Profissional 
+                        { 
+                            Nome = "Carlos Souza", 
+                            Email = "carlos@barbearia.com",
+                            Telefone = "(11) 99999-1111",
+                            ImgUrl = "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
+                            Especialidades = Servicos.Take(2).ToList()
+                        },
+                        new Profissional 
+                        { 
+                            Nome = "João Silva", 
+                            Email = "joao@barbearia.com",
+                            Telefone = "(11) 99999-2222",
+                            ImgUrl = "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
+                            Especialidades = Servicos.Skip(1).Take(2).ToList()
+                        }
+                    };
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erro ao carregar profissionais: {ex.Message}");
+                await ExibirMensagem($"Erro ao carregar profissionais: {ex.Message}", "error");
+            }
+        }
+
+        private async Task OnServicosSelecionadosChanged(List<Servico> servicos)
+        {
+            ServicosSelecionados = servicos;
+            // Limpar seleções dependentes quando serviços mudam
+            ProfissionalSelecionado = null;
+            HorarioSelecionado = null;
+            StateHasChanged();
+        }
+
+        private async Task OnProfissionalSelecionadoChanged(Profissional? profissional)
+        {
+            ProfissionalSelecionado = profissional;
+            // Limpar horário quando profissional muda
+            HorarioSelecionado = null;
+            StateHasChanged();
+        }
+
+        private async Task OnHorarioSelecionadoChanged(DateTime horario)
+        {
+            HorarioSelecionado = horario;
+            Agendamento.DataHora = horario;
+            Agendamento.ProfissionalId = ProfissionalSelecionado?.Id ?? 0;
+            StateHasChanged();
+        }
+
+        private async Task OnDataChanged(ChangeEventArgs e)
+        {
+            if (DateTime.TryParseExact(e.Value?.ToString(), "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out DateTime data))
+            {
+                DataSelecionada = data;
+            }
+            else
+            {
+                DataSelecionada = null;
+                Console.WriteLine($"AVISO: Formato de data inválido ou data vazia: {e.Value}");
+            }
+
+            await CarregarHorarios();
+        }
+
+        private async Task CarregarHorarios()
+        {
+            if (ServicosSelecionados.Any() && ProfissionalSelecionado != null && DataSelecionada.HasValue)
+            {
+                try
+                {
+                    // Calcula a duração total dos serviços selecionados
+                    int duracaoTotal = ServicosSelecionados.Sum(s => s.DuracaoEmMinutos);
+                    
+                    // Usar o HorarioService para buscar horários disponíveis
+                    using var context = DbFactory.CreateDbContext();
+                    var horarioService = new HorarioService(DbFactory);
+                    
+                    // Buscar horários disponíveis para o profissional específico
+                    HorariosDisponiveis = await horarioService.GetHorariosDisponiveisAsync(
+                        DataSelecionada.Value, 
+                        ProfissionalSelecionado.Id, 
+                        duracaoTotal);
+                    
+
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Erro ao carregar horários: {ex.Message}");
+                    HorariosDisponiveis = new List<DateTime>();
+                }
+            }
+            else
+            {
+                HorariosDisponiveis = new List<DateTime>();
+            }
+            StateHasChanged();
+        }
+
+        private async Task SelecionarHorario(DateTime horario)
+        {
+            HorarioSelecionado = horario;
+            Agendamento.DataHora = horario;
+            Agendamento.ProfissionalId = ProfissionalSelecionado?.Id ?? 0;
+            Console.WriteLine($"Horário selecionado: {horario}");
+            StateHasChanged();
+        }
+
+        private static string CleanPhoneNumber(string phoneNumber)
+        {
+            return new string(phoneNumber.Where(char.IsDigit).ToArray());
+        }
+
+        // Multi-step navigation methods
+        private async Task PreviousStep()
+        {
+            if (CurrentStep > 1)
+            {
+                CurrentStep--;
+                StateHasChanged();
+            }
+        }
+
+        private async Task NextStep()
+        {
+            if (CurrentStep < TotalSteps && CanProceedToNextStep)
+            {
+                CurrentStep++;
+                StateHasChanged();
+            }
+        }
+
+        private bool CanProceedToNextStep
+        {
+            get
+            {
+                return CurrentStep switch
+                {
+                    1 => ServicosSelecionados.Any(),
+                    2 => ProfissionalSelecionado != null,
+                    3 => HorarioSelecionado.HasValue,
+                    4 => !string.IsNullOrWhiteSpace(Agendamento.NomeDoCliente) && 
+                          !string.IsNullOrWhiteSpace(Agendamento.NumeroDoCliente),
+                    _ => false
+                };
+            }
+        }
+
+        private async Task AddAgendamento()
+        {
+            if (!HorarioSelecionado.HasValue || ProfissionalSelecionado == null || !ServicosSelecionados.Any())
+            {
+                await ExibirMensagem("Por favor, complete todos os passos do agendamento.", "error");
+                return;
+            }
+
+            isLoading = true;
+            StateHasChanged();
+
+            try
+            {
+                using var context = DbFactory.CreateDbContext();
+
+                // Limpa o número de telefone antes de salvar no banco de dados
+                Agendamento.NumeroDoCliente = CleanPhoneNumber(Agendamento.NumeroDoCliente);
+
+                // Configura o agendamento
+                Agendamento.DataHora = HorarioSelecionado.Value;
+                Agendamento.ProfissionalId = ProfissionalSelecionado.Id;
+
+                // Busca os serviços existentes no banco de dados
+                var servicosIds = ServicosSelecionados.Select(s => s.Id).ToList();
+                var servicosExistentes = await context.Servico.Where(s => servicosIds.Contains(s.Id)).ToListAsync();
+                Agendamento.Servicos = servicosExistentes;
+
+                // Adiciona o agendamento ao contexto
+                context.Agendamento.Add(Agendamento);
+                await context.SaveChangesAsync();
+
+                await ExibirMensagem("Agendamento realizado com sucesso! Entraremos em contato em breve.", "success");
+                LimparFormulario();
+            }
+            catch (Exception ex)
+            {
+                await ExibirMensagem($"Erro ao realizar agendamento: {ex.Message}", "error");
+            }
+            finally
+            {
+                isLoading = false;
+                StateHasChanged();
+            }
+        }
+
+        private void LimparFormulario()
+        {
+            Agendamento = new Agendamento();
+            ServicosSelecionados.Clear();
+            ProfissionalSelecionado = null;
+            HorarioSelecionado = null;
+            DataSelecionada = DateTime.Today;
+            HorariosDisponiveis.Clear();
+            CurrentStep = 1;
+            mensagemFeedback = string.Empty;
+            tipoMensagem = string.Empty;
+            StateHasChanged();
+        }
+
+        private async Task ExibirMensagem(string mensagem, string tipo)
+        {
+            mensagemFeedback = mensagem;
+            tipoMensagem = tipo;
+            StateHasChanged();
+
+            // Limpa a mensagem após 5 segundos
+            await Task.Delay(5000);
+            if (mensagemFeedback == mensagem)
+            {
+                mensagemFeedback = string.Empty;
+                tipoMensagem = string.Empty;
+                StateHasChanged();
+            }
+        }
+
+        private async Task ScrollToAgendamento()
+        {
+            try
+            {
+                await JSRuntime.InvokeVoidAsync("scrollToElement", "agendamento");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erro ao fazer scroll: {ex.Message}");
+            }
+        }
+
+        private async Task ScrollToServicos()
+        {
+            try
+            {
+                await JSRuntime.InvokeVoidAsync("scrollToElement", "servicos");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erro ao fazer scroll: {ex.Message}");
+            }
+        }
+
+        public async Task ForcarCarregamentoDados()
+        {
+            try
+            {
+                Console.WriteLine("Forçando carregamento de dados...");
+                
+                using var context = DbFactory.CreateDbContext();
+                
+                // Verificar se o banco existe
+                if (!await context.Database.CanConnectAsync())
+                {
+                    await context.Database.EnsureCreatedAsync();
+                }
+                
+                // Se não há serviços no banco, criar dados de exemplo
+                var servicosExistentes = await context.Servico.ToListAsync();
+                if (!servicosExistentes.Any())
+                {
+                    var novosServicos = new List<Servico>
+                    {
+                        new Servico { Nome = "Corte Masculino", Descricao = "Corte tradicional masculino", Preco = 25.00m, DuracaoEmMinutos = 30, ImgUrl = "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" },
+                        new Servico { Nome = "Barba", Descricao = "Acabamento de barba", Preco = 15.00m, DuracaoEmMinutos = 20, ImgUrl = "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" },
+                        new Servico { Nome = "Corte + Barba", Descricao = "Corte completo com barba", Preco = 35.00m, DuracaoEmMinutos = 45, ImgUrl = "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" },
+                        new Servico { Nome = "Hidratação", Descricao = "Hidratação capilar", Preco = 40.00m, DuracaoEmMinutos = 60, ImgUrl = "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" }
+                    };
+                    
+                    context.Servico.AddRange(novosServicos);
+                    await context.SaveChangesAsync();
+                }
+                
+                // Recarregar serviços do banco
+                Servicos = await context.Servico.ToListAsync();
+                
+                // Se não há profissionais no banco, criar dados de exemplo
+                var profissionaisExistentes = await context.Profissional.ToListAsync();
+                if (!profissionaisExistentes.Any())
+                {
+                    var novosProfissionais = new List<Profissional>
+                    {
+                        new Profissional 
+                        { 
+                            Nome = "Carlos Souza", 
+                            Email = "carlos@barbearia.com",
+                            Telefone = "(11) 99999-1111",
+                            ImgUrl = "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
+                            Especialidades = Servicos.Take(2).ToList()
+                        },
+                        new Profissional 
+                        { 
+                            Nome = "João Silva", 
+                            Email = "joao@barbearia.com",
+                            Telefone = "(11) 99999-2222",
+                            ImgUrl = "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
+                            Especialidades = Servicos.Skip(1).Take(2).ToList()
+                        }
+                    };
+                    
+                    context.Profissional.AddRange(novosProfissionais);
+                    await context.SaveChangesAsync();
+                }
+                
+                // Recarregar profissionais do banco
+                Profissionais = await context.Profissional.Include(p => p.Especialidades).ToListAsync();
+                
+                StateHasChanged();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erro ao forçar carregamento: {ex.Message}");
+            }
+        }
+
+        private async Task ToggleServico(Servico servico)
+        {
+            if (ServicosSelecionados.Any(s => s.Id == servico.Id))
+            {
+                // Remove o serviço se já estiver selecionado
+                ServicosSelecionados.RemoveAll(s => s.Id == servico.Id);
+            }
+            else
+            {
+                // Adiciona o serviço se não estiver selecionado
+                ServicosSelecionados.Add(servico);
+            }
+
+            StateHasChanged();
+        }
+
+        private async Task SelecionarProfissional(Profissional profissional)
+        {
+            ProfissionalSelecionado = profissional;
+            // Limpar horário quando profissional muda
+            HorarioSelecionado = null;
+            StateHasChanged();
+        }
+    }
+}

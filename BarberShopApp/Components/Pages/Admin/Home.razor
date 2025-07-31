@@ -1,0 +1,175 @@
+﻿@page "/admin"
+@attribute [Authorize]
+@using Microsoft.EntityFrameworkCore
+@using BarberShopApp.Components.Pages.Components
+@using BarberShopApp.Core.Models
+@using BarberShopApp.Data
+@inject IDbContextFactory<ApplicationDbContext> DbFactory
+
+@rendermode InteractiveServer
+<PageTitle>Dashboard - Área Administrativa</PageTitle>
+
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12 text-center">
+            <h1 class="display-4">✂️ Barbearia</h1>
+            <p class="lead">Sistema de Agendamento Inteligente</p>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i class="fas fa-calendar-plus fa-3x text-primary mb-3"></i>
+                    <h5 class="card-title">Novo Agendamento</h5>
+                    <p class="card-text">Agende seu horário de forma rápida e fácil</p>
+                    <a href="/admin/agendamentos/create" class="btn btn-primary">Agendar</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i class="fas fa-list fa-3x text-info mb-3"></i>
+                    <h5 class="card-title">Ver Agendamentos</h5>
+                    <p class="card-text">Visualize todos os agendamentos</p>
+                    <a href="/admin/agendamentos" class="btn btn-info">Ver Todos</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i class="fas fa-cogs fa-3x text-success mb-3"></i>
+                    <h5 class="card-title">Gerenciar Serviços</h5>
+                    <p class="card-text">Configure os serviços oferecidos</p>
+                    <a href="/admin/servicos" class="btn btn-success">Gerenciar</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (Estatisticas != null)
+    {
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card bg-primary text-white">
+                    <div class="card-body text-center">
+                        <h4>@Estatisticas.TotalAgendamentos</h4>
+                        <p class="mb-0">Total de Agendamentos</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-success text-white">
+                    <div class="card-body text-center">
+                        <h4>@Estatisticas.AgendamentosHoje</h4>
+                        <p class="mb-0">Agendamentos Hoje</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-info text-white">
+                    <div class="card-body text-center">
+                        <h4>@Estatisticas.TotalServicos</h4>
+                        <p class="mb-0">Serviços Disponíveis</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-warning text-white">
+                    <div class="card-body text-center">
+                        <h4>R$ @Estatisticas.FaturamentoTotal.ToString("F2")</h4>
+                        <p class="mb-0">Faturamento Total</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (ProximosAgendamentos != null && ProximosAgendamentos.Any())
+    {
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">📅 Próximos Agendamentos</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Data/Hora</th>
+                                        <th>Cliente</th>
+                                        <th>Serviço</th>
+                                        <th>Duração</th>
+                                        <th>Preço</th>
+                                    </tr>
+                                </thead>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private EstatisticasDashboard? Estatisticas { get; set; }
+    private List<Agendamento> ProximosAgendamentos { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CarregarDados();
+    }
+
+    private async Task CarregarDados()
+    {
+        using var context = DbFactory.CreateDbContext();
+        
+        // Carregar estatísticas
+        var totalAgendamentos = await context.Agendamento.CountAsync();
+        var hoje = DateTime.Today;
+        var agendamentosHoje = await context.Agendamento
+            .Where(a => a.DataHora.Date == hoje)
+            .CountAsync();
+        var totalServicos = await context.Servico.CountAsync();
+        var agendamentosComServicos = await context.Agendamento
+            .Include(a => a.Servicos)
+            .ToListAsync();
+
+        var faturamentoTotal = agendamentosComServicos
+            .Select(a => a.Servicos.Sum(s => s.Preco))
+            .ToList();
+        
+        var faturamentoTotalCalculado = faturamentoTotal.Sum();
+
+        Estatisticas = new EstatisticasDashboard
+        {
+            TotalAgendamentos = totalAgendamentos,
+            AgendamentosHoje = agendamentosHoje,
+            TotalServicos = totalServicos,
+            FaturamentoTotal = faturamentoTotalCalculado
+        };
+
+        // Carregar próximos agendamentos
+        var agora = DateTime.Now;
+        ProximosAgendamentos = await context.Agendamento
+            .Include(a => a.Servicos)
+            .Where(a => a.DataHora >= agora)
+            .OrderBy(a => a.DataHora)
+            .Take(5)
+            .ToListAsync();
+    }
+
+    public class EstatisticasDashboard
+    {
+        public int TotalAgendamentos { get; set; }
+        public int AgendamentosHoje { get; set; }
+        public int TotalServicos { get; set; }
+        public decimal FaturamentoTotal { get; set; }
+    }
+}

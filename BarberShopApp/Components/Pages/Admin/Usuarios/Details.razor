@@ -1,0 +1,222 @@
+@page "/admin/usuarios/details/{UserId}"
+@using BarberShopApp.Data
+@using BarberShopApp.Core.Models
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
+@inject UserManager<ApplicationUser> UserManager
+@inject NavigationManager NavigationManager
+@inject IDbContextFactory<ApplicationDbContext> DbFactory
+@attribute [Authorize(Roles = "Admin")]
+@rendermode InteractiveServer
+
+<PageTitle>Detalhes do Usuário - BarberShop</PageTitle>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>Detalhes do Usuário</h2>
+                <div>
+                    <a href="/admin/usuarios/edit/@UserId" class="btn btn-primary me-2">Editar</a>
+                    <a href="/admin/usuarios" class="btn btn-secondary">Voltar</a>
+                </div>
+            </div>
+
+            @if (isLoading)
+            {
+                <div class="text-center">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Carregando...</span>
+                    </div>
+                </div>
+            }
+            else if (Usuario != null)
+            {
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Informações do Usuário</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Nome Completo:</label>
+                                    <p class="form-control-plaintext">@Usuario.Nome</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Email:</label>
+                                    <p class="form-control-plaintext">@Usuario.Email</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Nome de Usuário:</label>
+                                    <p class="form-control-plaintext">@Usuario.UserName</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Telefone:</label>
+                                    <p class="form-control-plaintext">@Usuario.PhoneNumber</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Perfil:</label>
+                                    <p class="form-control-plaintext">@PerfilSelecionado</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Email Confirmado:</label>
+                                    <p class="form-control-plaintext">@(Usuario.EmailConfirmed ? "Sim" : "Não")</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        @if (PerfilSelecionado == "Profissional" && DadosProfissional != null)
+                        {
+                            <hr />
+                            <h5>Dados do Profissional</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Nome do Profissional:</label>
+                                        <p class="form-control-plaintext">@DadosProfissional.Nome</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Telefone do Profissional:</label>
+                                        <p class="form-control-plaintext">@DadosProfissional.Telefone</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Tipo de Documento:</label>
+                                        <p class="form-control-plaintext">@DadosProfissional.TipoDocumento</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Número do Documento:</label>
+                                        <p class="form-control-plaintext">@DadosProfissional.Documento</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Data de Nascimento:</label>
+                                        <p class="form-control-plaintext">@DadosProfissional.DataNacimento.ToString("dd/MM/yyyy")</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Percentual de Comissão:</label>
+                                        <p class="form-control-plaintext">@(DadosProfissional.PercentualDeComissao?.ToString() ?? "Não definido")%</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">URL da Imagem:</label>
+                                        <p class="form-control-plaintext">@DadosProfissional.ImgUrl</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Fumante:</label>
+                                        <p class="form-control-plaintext">@(DadosProfissional.Fumante ? "Sim" : "Não")</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            @if (DadosProfissional.Especialidades != null && DadosProfissional.Especialidades.Any())
+                            {
+                                <div class="row">
+                                    <div class="col-12">
+                                        <div class="mb-3">
+                                            <label class="form-label fw-bold">Especialidades:</label>
+                                            <div class="d-flex flex-wrap gap-2">
+                                                @foreach (var especialidade in DadosProfissional.Especialidades)
+                                                {
+                                                    <span class="badge bg-primary">@especialidade.Nome</span>
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        }
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-danger" role="alert">
+                    Usuário não encontrado.
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public string UserId { get; set; } = "";
+
+    private ApplicationUser? Usuario;
+    private string PerfilSelecionado = "";
+    private bool isLoading = true;
+    private Profissional? DadosProfissional;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CarregarUsuario();
+    }
+
+    private async Task CarregarUsuario()
+    {
+        try
+        {
+            Usuario = await UserManager.FindByIdAsync(UserId);
+            if (Usuario != null)
+            {
+                var roles = await UserManager.GetRolesAsync(Usuario);
+                PerfilSelecionado = roles.FirstOrDefault() ?? "";
+                
+                // Se for profissional, carregar os dados do profissional
+                if (PerfilSelecionado == "Profissional")
+                {
+                    using var context = await DbFactory.CreateDbContextAsync();
+                    DadosProfissional = await context.Profissional
+                        .Include(p => p.Especialidades)
+                        .FirstOrDefaultAsync(p => p.Email == Usuario.Email);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            // Log do erro se necessário
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+} 

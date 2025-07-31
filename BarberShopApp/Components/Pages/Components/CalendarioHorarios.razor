@@ -1,0 +1,114 @@
+@using BarberShopApp.Core.Services
+@inject HorarioService HorarioService
+
+<div class="calendario-horarios">
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <label for="dataSelect" class="form-label">Data:</label>
+            <input type="date" id="dataSelect" class="form-control" @onchange="OnDataChanged" value="@DataSelecionada?.ToString("yyyy-MM-dd")" min="@DateTime.Today.ToString("yyyy-MM-dd")" />
+        </div>
+    </div>
+
+    @if (ServicosSelecionados.Any() && ProfissionalSelecionado != null && DataSelecionada.HasValue)
+    {
+        <div class="row">
+            <div class="col-12">
+                <h5>Horários Disponíveis para @DataSelecionada.Value.ToString("dd/MM/yyyy"):</h5>
+                <div class="alert alert-info">
+                    <strong>Serviços:</strong> @string.Join(", ", ServicosSelecionados.Select(s => s.Nome))<br />
+                    <strong>Profissional:</strong> @ProfissionalSelecionado.Nome<br />
+                    <strong>Duração Total:</strong> @ServicosSelecionados.Sum(s => s.DuracaoEmMinutos) minutos
+                    @if (DataSelecionada?.Date == DateTime.Today)
+                    {
+                        <br />
+                        <small class="text-muted">
+                            <i class="fas fa-clock me-1"></i>
+                            Mostrando apenas horários futuros (a partir de 30 minutos após o horário atual)
+                        </small>
+                    }
+                </div>
+
+                @if (HorariosDisponiveis != null && HorariosDisponiveis.Any())
+                {
+                    <div class="horarios-grid">
+                        @foreach (var horario in HorariosDisponiveis)
+                        {
+                            <button type="button"
+                            class="btn btn-outline-primary horario-btn @(HorarioSelecionado.HasValue && horario.Equals(HorarioSelecionado.Value) ? "active" : "")"
+                            @onclick="@(() => SelecionarHorario(horario))">
+                                @horario.ToString("HH:mm")
+                            </button>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        @if (DataSelecionada?.Date == DateTime.Today)
+                        {
+                            <strong>Não há horários disponíveis para hoje.</strong><br />
+                            <small class="text-muted">
+                                Os horários disponíveis são mostrados a partir de 30 minutos após o horário atual.
+                            </small>
+                        }
+                        else
+                        {
+                            <strong>Não há horários disponíveis</strong>
+                            <p>para esta data, serviços e profissional selecionados</p>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i>
+            Para ver os horários disponíveis, selecione os serviços, o profissional e a data.
+        </div>
+    }
+
+    @if (HorarioSelecionado.HasValue)
+    {
+        <div class="row mt-3">
+            <div class="col-12">
+                <div class="alert alert-success">
+                    <strong>Agendamento Selecionado:</strong><br />
+                    <strong>Data/Hora:</strong> @HorarioSelecionado.Value.ToString("dd/MM/yyyy HH:mm")<br />
+                    <strong>Profissional:</strong> @ProfissionalSelecionado?.Nome<br />
+                    <strong>Serviços:</strong> @string.Join(", ", ServicosSelecionados.Select(s => s.Nome))<br />
+                    <strong>Duração:</strong> @ServicosSelecionados.Sum(s => s.DuracaoEmMinutos) minutos<br />
+                    <strong>Valor Total:</strong> R$ @ServicosSelecionados.Sum(s => s.Preco).ToString("F2")
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    .horarios-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        gap: 10px;
+        margin-top: 15px;
+    }
+
+    .horario-btn {
+        padding: 10px;
+        border-radius: 8px;
+        transition: all 0.2s ease-in-out;
+    }
+
+    .horario-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .horario-btn.active {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+        color: white;
+    }
+</style> 

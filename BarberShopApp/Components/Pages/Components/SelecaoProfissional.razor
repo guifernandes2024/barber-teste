@@ -1,0 +1,114 @@
+@using BarberShopApp.Core.Models
+
+<div class="selecao-profissional">
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">
+                <i class="fas fa-user-tie me-2"></i>
+                Selecionar Profissional
+            </h5>
+        </div>
+        <div class="card-body">
+            @if (ServicosSelecionados.Any())
+            {
+                <div class="alert alert-info mb-3">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>@ProfissionaisFiltrados.Count</strong> profissional(is) disponível(is) para <strong>TODOS</strong> os serviços selecionados.
+                </div>
+
+                @if (ProfissionaisFiltrados != null && ProfissionaisFiltrados.Any())
+                {
+                    <div class="row">
+                        @foreach (var profissional in ProfissionaisFiltrados)
+                        {
+                            <div class="col-md-6 col-lg-4 mb-3">
+                                <div class="card h-100 profissional-card @(ProfissionalSelecionado?.Id == profissional.Id ? "border-primary" : "")">
+                                    <div class="card-body">
+                                        <div class="text-center mb-3">
+                                            <img src="@profissional.ImgUrl" alt="@profissional.Nome" 
+                                                 class="rounded-circle" style="width: 80px; height: 80px; object-fit: cover;" />
+                                        </div>
+                                        
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" 
+                                                   name="profissional" 
+                                                   id="profissional-@profissional.Id" 
+                                                   @onchange="@(() => SelecionarProfissional(profissional))"
+                                                   checked="@(ProfissionalSelecionado?.Id == profissional.Id)" />
+                                            <label class="form-check-label" for="profissional-@profissional.Id">
+                                                <strong>@profissional.Nome</strong>
+                                            </label>
+                                        </div>
+                                        
+                                        <div class="mt-2">
+                                            <small class="text-muted">
+                                                <i class="fas fa-envelope me-1"></i>@profissional.Email
+                                            </small>
+                                            <br />
+                                            <small class="text-muted">
+                                                <i class="fas fa-phone me-1"></i>@profissional.Telefone
+                                            </small>
+                                        </div>
+                                        
+                                        @if (profissional.Especialidades != null && profissional.Especialidades.Any())
+                                        {
+                                            <div class="mt-2">
+                                                <small class="text-info">
+                                                    <i class="fas fa-star me-1"></i>
+                                                    <strong>Especialidades:</strong>
+                                                </small>
+                                                <br />
+                                                <small class="text-muted">
+                                                    @string.Join(", ", profissional.Especialidades.Select(e => e.Nome))
+                                                </small>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Nenhum profissional disponível</strong> para os serviços selecionados.
+                        <br />
+                        <small class="text-muted">
+                            Tente selecionar outros serviços ou entre em contato conosco.
+                        </small>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="alert alert-secondary">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Selecione pelo menos um serviço para ver os profissionais disponíveis.
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+    .profissional-card {
+        transition: all 0.2s ease-in-out;
+        cursor: pointer;
+    }
+
+    .profissional-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .profissional-card.border-primary {
+        border-width: 2px !important;
+    }
+
+    .form-check-input:checked {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+    }
+</style> 

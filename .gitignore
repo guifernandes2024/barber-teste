@@ -1,1 +1,169 @@
 .vs/
+# Visual Studio
+.vs/
+*.suo
+*.user
+*.userprefs
+*.VC.opendb
+*.VC.db
+
+# Binaries
+[Dd]ebug/
+[Rr]elease/
+[Bb]in/
+[Oo]bj/
+*.dll
+*.exe
+*.pdb
+*.psess
+*.vsp
+*.safeseh
+*.rsp
+*.fsx
+*.fsi
+*.fsscript
+*.dotfu
+*.dlc
+
+# Packages
+**/packages/
+**/node_modules/
+npm-debug.log
+.npm/
+
+# Rider
+.idea/
+
+# VS Code
+.vscode/
+
+# Build results
+/build/
+/out/
+*.log
+*.bak
+*.ncb
+*.opendb
+*.aps
+*.bsc
+*.sbr
+*.res
+*.pch
+*.idb
+*.opt
+*.orig
+*.ipch
+_ReSharper.*/
+*.[Rr]e[Ss]harper/
+
+# User-specific files
+*.user
+*.userosscache
+*.compile
+*.cache
+*.obj
+*.csproj.user
+*.vcxproj.user
+*.dbmdl
+*.jfm
+
+# ASP.NET Core
+appsettings.Development.json
+appsettings.Production.json
+appsettings.Staging.json
+appsettings.json
+appsettings.*.json # Geralmente, você não quer versionar segredos de configuração
+appsettings.*.json.user
+appsettings.json.user
+web.config
+web.Debug.config
+web.Release.config
+config.db
+
+# Logs
+logs/
+*.log
+
+# Test Results
+TestResults/
+*.trx
+
+# Visual Studio Code specific files
+.vscode/
+*.code-workspace
+
+# EditorConfig
+.editorconfig
+
+# Local machine files (e.g. for development server)
+.vs/
+*.vspscc
+*.vssscc
+*.local
+*.esproj.user
+
+# Git related files
+.gitattributes
+.gitkeep
+
+# Package Manager files
+*.nuget.props
+*.nuget.targets
+*.nupkg
+
+# Docker
+Dockerfile.build
+Dockerfile.publish
+.dockerignore
+
+# Blazor WebAssembly specific
+wwwroot/service-worker-assets.js
+wwwroot/service-worker.js
+
+# Kestrel SSL certificates
+*.pfx
+
+# User secrets (if not using Secret Manager)
+# Microsoft recommends using Secret Manager, so this line is usually not needed.
+# However, if you store secrets in appsettings.json, they might be versioned by default.
+# Consider using the .NET User Secrets tool instead for development secrets:
+# https://learn.microsoft.com/en-us/aspnet/core/fundamentals/secrets/user-secrets?view=aspnetcore-8.0&tabs=windows
+
+# Azure artifacts
+*.deploy.cmd
+*.deploy.zip
+
+# For Mac/Linux systems
+.DS_Store
+*.swp
+*~
+~*
+._*
+
+# Visual Studio IntelliTrace files
+*.itrace
+
+# SQL Server Compact Edition (SDF) files
+*.sdf
+*.mdf
+*.ldf
+
+# Dotfuscator
+*.dotfuscator
+
+# StyleCop
+StyleCop.Cache
+
+# Npm
+node_modules/
+
+# Swashbuckle/Swagger
+swagger.json
+
+# If you're using Entity Framework Migrations, you might want to exclude the migrations folder itself
+# But generally, migrations files are versioned as they represent schema changes.
+# If you decide to exclude them, uncomment the line below:
+# Migrations/
+
+# If you have specific files you want to ignore within a folder but not the folder itself, use '!'
+# E.g., to ignore all .dlls except

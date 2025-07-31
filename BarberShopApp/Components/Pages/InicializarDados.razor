@@ -1,0 +1,157 @@
+@page "/admin/inicializar-dados"
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.Extensions.DependencyInjection
+@using BarberShopApp.Core.Models
+@using BarberShopApp.Data
+@inject IDbContextFactory<ApplicationDbContext> DbFactory
+
+@rendermode InteractiveServer
+<PageTitle>Inicializar Dados - Barbearia</PageTitle>
+
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <h1>🔧 Inicializar Dados de Exemplo</h1>
+            <p class="lead">Este componente adiciona dados de exemplo para testar o sistema da barbearia.</p>
+
+            <div class="card">
+                <div class="card-header">
+                    <h5>Dados que serão criados:</h5>
+                </div>
+                <div class="card-body">
+                    <ul>
+                        <li><strong>Serviços:</strong> Corte masculino, Barba, Corte + Barba, Hidratação</li>
+                        <li><strong>Agendamentos de exemplo:</strong> Alguns agendamentos para demonstrar o sistema</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <button type="button" class="btn btn-primary btn-lg" @onclick="Inicializar" disabled="@IsInicializando">
+                    @if (IsInicializando)
+                    {
+                        <span class="spinner-border spinner-border-sm me-2"></span>
+                        <span>Inicializando...</span>
+                    }
+                    else
+                    {
+                        <i class="fas fa-database me-2"></i>
+                        <span>Inicializar Dados</span>
+                    }
+                </button>
+            </div>
+
+            @if (!string.IsNullOrEmpty(Mensagem))
+            {
+                <div class="alert alert-@TipoMensagem mt-3">
+                    @Mensagem
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    [Inject] 
+    private UserManager<ApplicationUser> UserManager { get; set; }
+
+
+    private bool IsInicializando { get; set; } = false;
+    private string Mensagem { get; set; } = "";
+    private string TipoMensagem { get; set; } = "info";
+
+    private async Task Inicializar()
+    {
+        IsInicializando = true;
+        Mensagem = "";
+        StateHasChanged();
+
+        try
+        {
+            using var context = DbFactory.CreateDbContext();
+            var userManager = UserManager;
+            var userName = "admin";
+            var adminEmail = "admin@email.com";
+            var adminPassword = "Admin@123";
+
+        
+            // Verificar se já existem dados
+            var servicosExistentes = await context.Servico.CountAsync();
+            if (servicosExistentes > 0)
+            {
+                Mensagem = "Dados já foram inicializados anteriormente.";
+                TipoMensagem = "warning";
+                return;
+            }    
+            
+            // Verifica se o usuário já existe
+            var adminUser = await userManager.FindByEmailAsync(adminEmail);
+            if (adminUser == null)
+            {
+                var user = new ApplicationUser
+                    {
+                        UserName = userName,
+                        Email = adminEmail,
+                        EmailConfirmed = true
+                    };
+
+                var result = await userManager.CreateAsync(user, adminPassword);
+
+                await UserManager.AddToRoleAsync(user, "Admin");
+            }
+
+
+            // Criar serviços
+            var servicos = new List<Servico>
+            {
+                new Servico { Nome = "Corte Masculino", Descricao = "Corte tradicional masculino", Preco = 25.00m, DuracaoEmMinutos = 30 },
+                new Servico { Nome = "Barba", Descricao = "Acabamento de barba", Preco = 15.00m, DuracaoEmMinutos = 20 },
+                new Servico { Nome = "Corte + Barba", Descricao = "Corte completo com barba", Preco = 35.00m, DuracaoEmMinutos = 45 },
+                new Servico { Nome = "Hidratação", Descricao = "Hidratação capilar", Preco = 40.00m, DuracaoEmMinutos = 60 }
+            };
+
+            context.Servico.AddRange(servicos);
+            await context.SaveChangesAsync();
+
+            // Criar alguns agendamentos de exemplo
+            var hoje = DateTime.Today;
+            var servicosIds = servicos.Select(s => s.Id).ToList();
+            var profissional = new Profissional()
+                {
+                    Nome = "Carlos Souza",
+                    Agendamentos = new List<Agendamento>(),
+                    DataAtualizacao = DateTime.Now,
+                    ImgUrl = "https://example.com/imagem-profissional.jpg",
+                    DataNacimento = new DateTime(1990, 1, 1),
+                    TipoDocumento = DocumentType.CPF,
+                    Documento = "12345678901",
+                    Email = "email@email.com",
+                    Especialidades = servicos,
+                    PercentualDeComissao = 50,
+                    Fumante = false,
+                    Telefone = "(11) 99999-2222"
+                };
+            var agendamentos = new List<Agendamento>
+            {
+                new Agendamento(hoje.AddDays(1).AddHours(9), "João Silva", "(11) 99999-1111", servicos, profissional, "Corte tradicional"),
+            };
+
+            context.Agendamento.AddRange(agendamentos);
+            await context.SaveChangesAsync();
+
+            Mensagem = $"Dados inicializados com sucesso! Criados {servicos.Count} serviços e {agendamentos.Count} agendamentos de exemplo.";
+            TipoMensagem = "success";
+        }
+        catch (Exception ex)
+        {
+            Mensagem = $"Erro ao inicializar dados: {ex.Message}";
+            TipoMensagem = "danger";
+        }
+        finally
+        {
+            IsInicializando = false;
+            StateHasChanged();
+        }
+    }
+} 

@@ -1,0 +1,40 @@
+/* Estilos para inputs de telefone */
+input[type="text"][id*="telefone"],
+input[type="text"][id*="phone"],
+input[type="text"][id*="celular"],
+input[type="text"][id*="whatsapp"],
+input[type="text"][id*="numero"] {
+    font-family: 'Courier New', monospace;
+    letter-spacing: 0.5px;
+}
+
+/* Estilo para inputs com erro de validação */
+input.is-invalid {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}
+
+/* Estilo para inputs válidos */
+input:not(.is-invalid):focus {
+    border-color: #28a745;
+    box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+}
+
+/* Placeholder com cor mais suave */
+input[type="text"][id*="telefone"]::placeholder,
+input[type="text"][id*="phone"]::placeholder,
+input[type="text"][id*="celular"]::placeholder,
+input[type="text"][id*="whatsapp"]::placeholder,
+input[type="text"][id*="numero"]::placeholder {
+    color: #6c757d;
+    opacity: 0.7;
+}
+
+/* Animação suave para transições */
+input[type="text"][id*="telefone"],
+input[type="text"][id*="phone"],
+input[type="text"][id*="celular"],
+input[type="text"][id*="whatsapp"],
+input[type="text"][id*="numero"] {
+    transition: all 0.2s ease-in-out;
+} 
