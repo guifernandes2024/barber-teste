@@ -94,9 +94,6 @@ namespace BarberShopApp.Components.Account.Pages
 
                     var profissional = new Profissional
                     {
-                        Nome = Input.NomeProfissional!,
-                        Email = Input.Email,
-                        Telefone = Input.TelefoneProfissional!,
                         TipoDocumento = Input.TipoDocumentoProfissional!.Value,
                         Documento = Input.DocumentoProfissional!,
                         DataNacimento = Input.DataNascimentoProfissional!.Value,
@@ -109,7 +106,7 @@ namespace BarberShopApp.Components.Account.Pages
 
                     await DbContext.Profissional.AddAsync(profissional);
                     await DbContext.SaveChangesAsync();
-                    Logger.LogInformation($"Profissional '{profissional.Nome}' created and associated.");
+                    Logger.LogInformation("Profissional created and associated.");
                     break;
                 case UserRegistrationType.Client:
                 default:

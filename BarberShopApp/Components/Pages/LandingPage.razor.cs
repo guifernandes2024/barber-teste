@@ -25,7 +25,16 @@ namespace BarberShopApp.Components.Pages
         // Multi-step properties
         private int CurrentStep { get; set; } = 1;
         private int TotalSteps { get; set; } = 4;
+        private string GetProfissionalNome(Profissional profissional)
+        {
+            // Buscar o nome através do ApplicationUser associado
+            using var context = DbFactory.CreateDbContext();
+            var user = context.Users.FirstOrDefault(u => u.ProfissionalId == profissional.Id);
 
+            var nome = user?.Nome ?? "Profissional";
+
+            return nome;
+        }
         protected override async Task OnInitializedAsync()
         {
             try
@@ -149,17 +158,11 @@ namespace BarberShopApp.Components.Pages
                     {
                         new Profissional 
                         { 
-                            Nome = "Carlos Souza", 
-                            Email = "carlos@barbearia.com",
-                            Telefone = "(11) 99999-1111",
                             ImgUrl = "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
                             Especialidades = Servicos.Take(2).ToList()
                         },
                         new Profissional 
                         { 
-                            Nome = "João Silva", 
-                            Email = "joao@barbearia.com",
-                            Telefone = "(11) 99999-2222",
                             ImgUrl = "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
                             Especialidades = Servicos.Skip(1).Take(2).ToList()
                         }
@@ -173,7 +176,7 @@ namespace BarberShopApp.Components.Pages
             }
         }
 
-        private async Task OnServicosSelecionadosChanged(List<Servico> servicos)
+        private void OnServicosSelecionadosChanged(List<Servico> servicos)
         {
             ServicosSelecionados = servicos;
             // Limpar seleções dependentes quando serviços mudam
@@ -182,7 +185,7 @@ namespace BarberShopApp.Components.Pages
             StateHasChanged();
         }
 
-        private async Task OnProfissionalSelecionadoChanged(Profissional? profissional)
+        private void OnProfissionalSelecionadoChanged(Profissional? profissional)
         {
             ProfissionalSelecionado = profissional;
             // Limpar horário quando profissional muda
@@ -190,7 +193,7 @@ namespace BarberShopApp.Components.Pages
             StateHasChanged();
         }
 
-        private async Task OnHorarioSelecionadoChanged(DateTime horario)
+        private void OnHorarioSelecionadoChanged(DateTime horario)
         {
             HorarioSelecionado = horario;
             Agendamento.DataHora = horario;
@@ -294,7 +297,7 @@ namespace BarberShopApp.Components.Pages
             StateHasChanged();
         }
 
-        private async Task SelecionarHorario(DateTime horario)
+        private void SelecionarHorario(DateTime horario)
         {
             HorarioSelecionado = horario;
             Agendamento.DataHora = horario;
@@ -309,7 +312,7 @@ namespace BarberShopApp.Components.Pages
         }
 
         // Multi-step navigation methods
-        private async Task PreviousStep()
+        private void PreviousStep()
         {
             if (CurrentStep > 1)
             {
@@ -490,17 +493,11 @@ namespace BarberShopApp.Components.Pages
                     {
                         new Profissional 
                         { 
-                            Nome = "Carlos Souza", 
-                            Email = "carlos@barbearia.com",
-                            Telefone = "(11) 99999-1111",
                             ImgUrl = "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
                             Especialidades = Servicos.Take(2).ToList()
                         },
                         new Profissional 
                         { 
-                            Nome = "João Silva", 
-                            Email = "joao@barbearia.com",
-                            Telefone = "(11) 99999-2222",
                             ImgUrl = "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80",
                             Especialidades = Servicos.Skip(1).Take(2).ToList()
                         }
@@ -521,7 +518,7 @@ namespace BarberShopApp.Components.Pages
             }
         }
 
-        private async Task ToggleServico(Servico servico)
+        private void ToggleServico(Servico servico)
         {
             if (ServicosSelecionados.Any(s => s.Id == servico.Id))
             {
@@ -537,7 +534,7 @@ namespace BarberShopApp.Components.Pages
             StateHasChanged();
         }
 
-        private async Task SelecionarProfissional(Profissional profissional)
+        private void SelecionarProfissional(Profissional profissional)
         {
             ProfissionalSelecionado = profissional;
             // Limpar horário quando profissional muda

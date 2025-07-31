@@ -3,17 +3,26 @@ using System.Globalization;
 using Microsoft.EntityFrameworkCore;
 using BarberShopApp.Data;
 using BarberShopApp.Core.Models;
+using Microsoft.AspNetCore.Identity;
 
 namespace BarberShopApp.Components.Pages.Admin.AgendamentoPages
 {
     public partial class Index
     {
         [Inject] 
-        public IDbContextFactory<ApplicationDbContext> DbFactory { get; set; } = default!; // Use default! para garantir n�o nulo
+        public IDbContextFactory<ApplicationDbContext> DbFactory { get; set; } = default!;
+        
+        [Inject]
+        public UserManager<ApplicationUser> UserManager { get; set; } = default!;
+        
+        [Inject]
+        public SignInManager<ApplicationUser> SignInManager { get; set; } = default!;
 
         private List<Agendamento> Agendamentos { get; set; } = new();
         private List<Agendamento> AgendamentosFiltrados { get; set; } = new();
         private List<Servico> TodosServicos { get; set; } = new();
+        private ApplicationUser? currentUser;
+        private bool isProfissional = false;
 
         // Filtros
         private DateTime? FiltroDataInicial { get; set; }
@@ -59,16 +68,35 @@ namespace BarberShopApp.Components.Pages.Admin.AgendamentoPages
 
         protected override async Task OnInitializedAsync()
         {
+            await VerificarUsuario();
             await CarregarDados();
             FiltrarAgendamentos();
+        }
+
+        private async Task VerificarUsuario()
+        {
+            currentUser = await UserManager.GetUserAsync(SignInManager.Context.User);
+            if (currentUser != null)
+            {
+                isProfissional = await UserManager.IsInRoleAsync(currentUser, "Profissional");
+            }
         }
 
         private async Task CarregarDados()
         {
             using var context = DbFactory.CreateDbContext();
 
-            Agendamentos = await context.Agendamento
+            var query = context.Agendamento
                 .Include(a => a.Servicos)
+                .AsQueryable();
+
+            // Se for profissional, filtrar apenas seus agendamentos
+            if (isProfissional && currentUser?.ProfissionalId.HasValue == true)
+            {
+                query = query.Where(a => a.ProfissionalId == currentUser.ProfissionalId.Value);
+            }
+
+            Agendamentos = await query
                 .OrderBy(a => a.DataHora)
                 .ToListAsync();
 
@@ -161,10 +189,34 @@ namespace BarberShopApp.Components.Pages.Admin.AgendamentoPages
             FiltroDataFinal = null;
             FiltroServicoId = 0;
 
-            // Depois de limpar as vari�veis, chame o m�todo de filtragem para re-aplicar o filtro (agora vazio)
+            // Depois de limpar as variáveis, chame o método de filtragem para re-aplicar o filtro (agora vazio)
             // e atualizar a UI.
             FiltrarAgendamentos();
-            // StateHasChanged() j� est� em FiltrarAgendamentos()
+            // StateHasChanged() já está em FiltrarAgendamentos()
+        }
+
+        private string GetProfissionalNome(int profissionalId)
+        {
+            using var context = DbFactory.CreateDbContext();
+            
+            // Buscar o profissional
+            var profissional = context.Profissional.FirstOrDefault(p => p.Id == profissionalId);
+            if (profissional == null)
+            {
+                return "Profissional não encontrado";
+            }
+            
+            // Buscar o nome através do ApplicationUser associado
+            var user = context.Users.FirstOrDefault(u => u.ProfissionalId == profissionalId);
+            var nome = user?.Nome ?? "Profissional";
+            
+            // Adicionar informação sobre ser fumante
+            if (profissional.Fumante == true)
+            {
+                nome += " (Fumante)";
+            }
+            
+            return nome;
         }
     }
 }

@@ -4,17 +4,6 @@ namespace BarberShopApp.Core.Models
 {
     public class Profissional : ModelBase
     {
-        [Required(ErrorMessage = "Nome é obrigatório")]
-        public string Nome { get; set; } = string.Empty;
-
-        [Required(ErrorMessage = "Email é obrigatório")]
-        [EmailAddress(ErrorMessage = "Email inválido")]
-        public string Email { get; set; } = string.Empty;
-
-        [Required(ErrorMessage = "Telefone é obrigatório")]
-        [PhoneNumber(ErrorMessage = "Formato de telefone inválido. Use o formato (99) 99999-9999")]
-        public string Telefone { get; set; } = string.Empty;
-
         [Required(ErrorMessage = "Tipo do Documento é obrigatório")]
         public DocumentType TipoDocumento { get; set; }
 

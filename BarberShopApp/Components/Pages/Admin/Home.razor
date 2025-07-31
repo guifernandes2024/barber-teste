@@ -4,7 +4,10 @@
 @using BarberShopApp.Components.Pages.Components
 @using BarberShopApp.Core.Models
 @using BarberShopApp.Data
+@using Microsoft.AspNetCore.Identity
 @inject IDbContextFactory<ApplicationDbContext> DbFactory
+@inject UserManager<ApplicationUser> UserManager
+@inject SignInManager<ApplicationUser> SignInManager
 
 @rendermode InteractiveServer
 <PageTitle>Dashboard - Área Administrativa</PageTitle>
@@ -103,11 +106,28 @@
                                     <tr>
                                         <th>Data/Hora</th>
                                         <th>Cliente</th>
-                                        <th>Serviço</th>
+                                        <th>Serviços</th>
                                         <th>Duração</th>
                                         <th>Preço</th>
                                     </tr>
                                 </thead>
+                                <tbody>
+                                    @foreach (var agendamento in ProximosAgendamentos)
+                                    {
+                                        <tr>
+                                            <td>@agendamento.DataHora.ToString("dd/MM/yyyy HH:mm")</td>
+                                            <td>@agendamento.NomeDoCliente</td>
+                                            <td>
+                                                @foreach (var servico in agendamento.Servicos)
+                                                {
+                                                    <span class="badge bg-primary me-1">@servico.Nome</span>
+                                                }
+                                            </td>
+                                            <td>@agendamento.Servicos.Sum(s => s.DuracaoEmMinutos) min</td>
+                                            <td>R$ @agendamento.Servicos.Sum(s => s.Preco).ToString("F2")</td>
+                                        </tr>
+                                    }
+                                </tbody>
                             </table>
                         </div>
                     </div>
@@ -120,24 +140,45 @@
 @code {
     private EstatisticasDashboard? Estatisticas { get; set; }
     private List<Agendamento> ProximosAgendamentos { get; set; } = new();
+    private ApplicationUser? currentUser;
+    private bool isProfissional = false;
 
     protected override async Task OnInitializedAsync()
     {
+        await VerificarUsuario();
         await CarregarDados();
+    }
+
+    private async Task VerificarUsuario()
+    {
+        currentUser = await UserManager.GetUserAsync(SignInManager.Context.User);
+        if (currentUser != null)
+        {
+            isProfissional = await UserManager.IsInRoleAsync(currentUser, "Profissional");
+        }
     }
 
     private async Task CarregarDados()
     {
         using var context = DbFactory.CreateDbContext();
         
+        var query = context.Agendamento.AsQueryable();
+        
+        // Se for profissional, filtrar apenas seus agendamentos
+        if (isProfissional && currentUser?.ProfissionalId.HasValue == true)
+        {
+            query = query.Where(a => a.ProfissionalId == currentUser.ProfissionalId.Value);
+        }
+        
         // Carregar estatísticas
-        var totalAgendamentos = await context.Agendamento.CountAsync();
+        var totalAgendamentos = await query.CountAsync();
         var hoje = DateTime.Today;
-        var agendamentosHoje = await context.Agendamento
+        var agendamentosHoje = await query
             .Where(a => a.DataHora.Date == hoje)
             .CountAsync();
         var totalServicos = await context.Servico.CountAsync();
-        var agendamentosComServicos = await context.Agendamento
+        
+        var agendamentosComServicos = await query
             .Include(a => a.Servicos)
             .ToListAsync();
 
@@ -157,7 +198,7 @@
 
         // Carregar próximos agendamentos
         var agora = DateTime.Now;
-        ProximosAgendamentos = await context.Agendamento
+        ProximosAgendamentos = await query
             .Include(a => a.Servicos)
             .Where(a => a.DataHora >= agora)
             .OrderBy(a => a.DataHora)

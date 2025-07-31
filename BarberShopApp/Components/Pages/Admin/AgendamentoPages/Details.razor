@@ -5,40 +5,110 @@
 @inject IDbContextFactory<BarberShopApp.Data.ApplicationDbContext> DbFactory
 @inject NavigationManager NavigationManager
 
-<PageTitle>Details</PageTitle>
+<PageTitle>Detalhes do Agendamento - Barbearia</PageTitle>
 
-<h1>Details</h1>
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1><i class="fas fa-calendar-check me-2"></i>Detalhes do Agendamento</h1>
+                <a href="/admin/agendamentos" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Voltar
+                </a>
+            </div>
 
-<div>
-    <h2>Agendamento</h2>
-    <hr />
-    @if (agendamento is null)
-    {
-        <p><em>Loading...</em></p>
-    }
-    else {
-        <dl class="row">
-            <dt class="col-sm-2">Id</dt>
-            <dd class="col-sm-10">@agendamento.Id</dd>
-            <dt class="col-sm-2">DataHora</dt>
-            <dd class="col-sm-10">@agendamento.DataHora</dd>
-            <dt class="col-sm-2">NomeDoCliente</dt>
-            <dd class="col-sm-10">@agendamento.NomeDoCliente</dd>
-            <dt class="col-sm-2">NumeroDoCliente</dt>
-            <dd class="col-sm-10">@agendamento.NumeroDoCliente</dd>
-            <dt class="col-sm-2">Serviços:</dt>
-			@foreach (var servico in @agendamento.Servicos)
-			{
-				<dd class="col-sm-10">@servico.Nome</dd>
-			}
-            <dt class="col-sm-2">Observacoes</dt>
-            <dd class="col-sm-10">@agendamento.Observacoes</dd>
-        </dl>
-        <div>
-            <a href="@($"/admin/agendamentos/edit?id={agendamento.Id}")" class="btn btn-primary">Edit</a> |
-            <a href="/admin/agendamentos" class="btn btn-secondary">Back to List</a>
+            @if (agendamento is null)
+            {
+                <div class="text-center">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Carregando...</span>
+                    </div>
+                </div>
+            }
+            else 
+            {
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Informações do Agendamento</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold text-dark">ID do Agendamento:</label>
+                                    <p class="form-control-plaintext text-dark">@agendamento.Id</p>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold text-dark">Data e Hora:</label>
+                                    <p class="form-control-plaintext text-dark">@agendamento.DataHora.ToString("dd/MM/yyyy HH:mm")</p>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold text-dark">Nome do Cliente:</label>
+                                    <p class="form-control-plaintext text-dark">@agendamento.NomeDoCliente</p>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold text-dark">Telefone:</label>
+                                    <p class="form-control-plaintext text-dark">@agendamento.NumeroDoCliente</p>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold text-dark">Profissional:</label>
+                                    <p class="form-control-plaintext text-dark">@GetProfissionalNome(agendamento.ProfissionalId)</p>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold text-dark">Serviços:</label>
+                                    <div class="form-control-plaintext">
+                                        @foreach (var servico in agendamento.Servicos)
+                                        {
+                                            <span class="badge bg-primary me-1 mb-1">@servico.Nome</span>
+                                        }
+                                    </div>
+                                </div>
+                                
+                                @if (!string.IsNullOrEmpty(agendamento.Observacoes))
+                                {
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold text-dark">Observações:</label>
+                                        <p class="form-control-plaintext text-dark">@agendamento.Observacoes</p>
+                                    </div>
+                                }
+                                
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold text-dark">Valor Total:</label>
+                                    <p class="form-control-plaintext text-success fw-bold">
+                                        R$ @agendamento.Servicos.Sum(s => s.Preco).ToString("F2")
+                                    </p>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold text-dark">Duração Total:</label>
+                                    <p class="form-control-plaintext text-dark">
+                                        @agendamento.Servicos.Sum(s => s.DuracaoEmMinutos) minutos
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <div class="d-flex gap-2">
+                            <a href="@($"/admin/agendamentos/edit?id={agendamento.Id}")" class="btn btn-primary">
+                                <i class="fas fa-edit me-2"></i>Editar
+                            </a>
+                            <a href="@($"/admin/agendamentos/delete?id={agendamento.Id}")" class="btn btn-danger">
+                                <i class="fas fa-trash me-2"></i>Excluir
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
         </div>
-    }
+    </div>
 </div>
 
 @code {
@@ -58,5 +128,29 @@
         {
             NavigationManager.NavigateTo("notfound");
         }
+    }
+
+    private string GetProfissionalNome(int profissionalId)
+    {
+        using var context = DbFactory.CreateDbContext();
+        
+        // Buscar o profissional
+        var profissional = context.Profissional.FirstOrDefault(p => p.Id == profissionalId);
+        if (profissional == null)
+        {
+            return "Profissional não encontrado";
+        }
+        
+        // Buscar o nome através do ApplicationUser associado
+        var user = context.Users.FirstOrDefault(u => u.ProfissionalId == profissionalId);
+        var nome = user?.Nome ?? "Profissional";
+        
+        // Adicionar informação sobre ser fumante
+        if (profissional.Fumante == true)
+        {
+            nome += " (Fumante)";
+        }
+        
+        return nome;
     }
 }

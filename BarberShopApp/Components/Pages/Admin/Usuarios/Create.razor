@@ -96,15 +96,20 @@
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="mb-3">
-                                        <label for="nomeProfissional" class="form-label">Nome do Profissional *</label>
-                                        <InputText id="nomeProfissional" @bind-Value="DadosProfissional.Nome" class="form-control" required />
+                                        <label for="tipoDocumento" class="form-label">Tipo de Documento *</label>
+                                        <InputSelect id="tipoDocumento" @bind-Value="DadosProfissional.TipoDocumento" class="form-control" required>
+                                            <option value="">Selecione o Tipo de Documento</option>
+                                            @foreach (var type in Enum.GetValues<DocumentType>())
+                                            {
+                                                <option value="@type">@type.ToString()</option>
+                                            }
+                                        </InputSelect>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="mb-3">
-                                        <label for="telefoneProfissional" class="form-label">Telefone do Profissional *</label>
-                                        <input type="text" id="telefoneProfissional" @bind="DadosProfissional.Telefone" class="form-control" 
-                                               placeholder="(11) 99999-9999" maxlength="15" required />
+                                        <label for="documento" class="form-label">Número do Documento *</label>
+                                        <InputText id="documento" @bind-Value="DadosProfissional.Documento" class="form-control" required />
                                     </div>
                                 </div>
                             </div>
@@ -297,14 +302,9 @@
             // Validação dos campos do profissional
             if (PerfilSelecionado == "Profissional")
             {
-                if (string.IsNullOrWhiteSpace(DadosProfissional.Nome))
+                if (string.IsNullOrWhiteSpace(DadosProfissional.Documento))
                 {
-                    mensagemErro = "O nome do profissional é obrigatório.";
-                    return;
-                }
-                if (string.IsNullOrWhiteSpace(DadosProfissional.Telefone))
-                {
-                    mensagemErro = "O telefone do profissional é obrigatório.";
+                    mensagemErro = "O documento do profissional é obrigatório.";
                     return;
                 }
                 if (string.IsNullOrWhiteSpace(DadosProfissional.Documento))
@@ -373,9 +373,6 @@
                     
                     var profissional = new Profissional
                     {
-                        Nome = DadosProfissional.Nome,
-                        Email = Usuario.Email,
-                        Telefone = DadosProfissional.Telefone,
                         TipoDocumento = DadosProfissional.TipoDocumento,
                         Documento = DadosProfissional.Documento,
                         DataNacimento = DadosProfissional.DataNacimento,

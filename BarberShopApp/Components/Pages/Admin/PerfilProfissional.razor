@@ -1,0 +1,167 @@
+@page "/admin/perfil-profissional"
+@using BarberShopApp.Core.Models
+@using BarberShopApp.Data
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
+
+@rendermode InteractiveServer
+
+<PageTitle>Perfil do Profissional</PageTitle>
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-user-tie me-2"></i>Perfil do Profissional</h3>
+                </div>
+                <div class="card-body">
+                    @if (isLoading)
+                    {
+                        <div class="text-center">
+                            <div class="spinner-border" role="status">
+                                <span class="visually-hidden">Carregando...</span>
+                            </div>
+                        </div>
+                    }
+                    else if (profissional != null && user != null)
+                    {
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="text-center mb-4">
+                                    <img src="@profissional.ImgUrl" alt="Foto do Profissional" 
+                                         class="img-fluid rounded-circle" style="width: 200px; height: 200px; object-fit: cover;">
+                                    <h4 class="mt-3">@user.Nome</h4>
+                                    <p class="text-muted">@user.Email</p>
+                                </div>
+                            </div>
+                            <div class="col-md-8">
+                                <form @onsubmit="SalvarPerfil">
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="nome" class="form-label">Nome Completo</label>
+                                            <input type="text" id="nome" class="form-control" @bind="user.Nome" required>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="email" class="form-label">Email</label>
+                                            <input type="email" id="email" class="form-control" @bind="user.Email" required>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="telefone" class="form-label">Telefone</label>
+                                            <input type="text" id="telefone" class="form-control" @bind="user.PhoneNumber" 
+                                                   placeholder="(99) 99999-9999">
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="dataNascimento" class="form-label">Data de Nascimento</label>
+                                            <input type="date" id="dataNascimento" class="form-control" 
+                                                   @bind="profissional.DataNacimento" required>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="tipoDocumento" class="form-label">Tipo de Documento</label>
+                                            <select id="tipoDocumento" class="form-control" @bind="profissional.TipoDocumento">
+                                                <option value="@DocumentType.CPF">CPF</option>
+                                                <option value="@DocumentType.CNPJ">CNPJ</option>
+                                                <option value="@DocumentType.RG">RG</option>
+                                                <option value="@DocumentType.Passaporte">Passaporte</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="documento" class="form-label">Documento</label>
+                                            <input type="text" id="documento" class="form-control" @bind="profissional.Documento" required>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="imgUrl" class="form-label">URL da Foto</label>
+                                            <input type="url" id="imgUrl" class="form-control" @bind="profissional.ImgUrl" required>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="percentualComissao" class="form-label">Percentual de Comissão (%)</label>
+                                            <input type="number" id="percentualComissao" class="form-control" 
+                                                   @bind="profissional.PercentualDeComissao" min="0" max="100">
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <div class="form-check">
+                                                <input type="checkbox" id="fumante" class="form-check-input" 
+                                                       @bind="profissional.Fumante">
+                                                <label for="fumante" class="form-check-label">Fumante</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-12 mb-3">
+                                            <label class="form-label">Especialidades</label>
+                                            <div class="row">
+                                                @foreach (var servico in servicos)
+                                                {
+                                                    <div class="col-md-4 mb-2">
+                                                        <div class="form-check">
+                                                            <input type="checkbox" class="form-check-input" 
+                                                                   id="servico_@servico.Id" 
+                                                                   @onchange="@((e) => OnServicoChanged(servico.Id, e.Value))"
+                                                                   checked="@servicoSelecionado.Contains(servico.Id)">
+                                                            <label for="servico_@servico.Id" class="form-check-label">
+                                                                @servico.Nome
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <button type="submit" class="btn btn-primary" disabled="@isSaving">
+                                                @if (isSaving)
+                                                {
+                                                    <span class="spinner-border spinner-border-sm me-2"></span>
+                                                    <span>Salvando...</span>
+                                                }
+                                                else
+                                                {
+                                                    <i class="fas fa-save me-2"></i>
+                                                    <span>Salvar Alterações</span>
+                                                }
+                                            </button>
+                                            <a href="/admin" class="btn btn-secondary ms-2">
+                                                <i class="fas fa-arrow-left me-2"></i>Voltar
+                                            </a>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            Profissional não encontrado ou você não tem permissão para acessar esta página.
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (!string.IsNullOrEmpty(mensagem))
+{
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div class="toast show" role="alert">
+            <div class="toast-header">
+                <strong class="me-auto">@(tipoMensagem == "success" ? "Sucesso" : "Aviso")</strong>
+                <button type="button" class="btn-close" @onclick="() => mensagem = string.Empty"></button>
+            </div>
+            <div class="toast-body">
+                @mensagem
+            </div>
+        </div>
+    </div>
+} 

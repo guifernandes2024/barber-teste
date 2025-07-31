@@ -100,14 +100,20 @@
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="mb-3">
-                                            <label for="nomeProfissional" class="form-label">Nome do Profissional *</label>
-                                            <InputText id="nomeProfissional" @bind-Value="DadosProfissional.Nome" class="form-control" required />
+                                            <label for="tipoDocumento" class="form-label">Tipo de Documento *</label>
+                                            <InputSelect id="tipoDocumento" @bind-Value="DadosProfissional.TipoDocumento" class="form-control" required>
+                                                <option value="">Selecione o Tipo de Documento</option>
+                                                @foreach (var type in Enum.GetValues<DocumentType>())
+                                                {
+                                                    <option value="@type">@type.ToString()</option>
+                                                }
+                                            </InputSelect>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="mb-3">
-                                            <label for="telefoneProfissional" class="form-label">Telefone do Profissional *</label>
-                                            <InputText id="telefoneProfissional" @bind-Value="DadosProfissional.Telefone" class="form-control" required />
+                                            <label for="documento" class="form-label">Número do Documento *</label>
+                                            <InputText id="documento" @bind-Value="DadosProfissional.Documento" class="form-control" required />
                                         </div>
                                     </div>
                                 </div>
@@ -340,7 +346,7 @@
                     using var context = await DbFactory.CreateDbContextAsync();
                     var profissional = await context.Profissional
                         .Include(p => p.Especialidades)
-                        .FirstOrDefaultAsync(p => p.Email == Usuario.Email);
+                        .FirstOrDefaultAsync(p => p.Id == Usuario.ProfissionalId);
                     if (profissional != null)
                     {
                         DadosProfissional = profissional;
@@ -376,7 +382,7 @@
         StateHasChanged();
     }
 
-    private async Task AlterarSenha()
+    private void AlterarSenha()
     {
         mostrarCamposSenha = true;
         NovaSenha = "";
@@ -456,14 +462,9 @@
             // Validação dos campos do profissional
             if (PerfilSelecionado == "Profissional")
             {
-                if (string.IsNullOrWhiteSpace(DadosProfissional.Nome))
+                if (string.IsNullOrWhiteSpace(DadosProfissional.Documento))
                 {
-                    mensagemErro = "O nome do profissional é obrigatório.";
-                    return;
-                }
-                if (string.IsNullOrWhiteSpace(DadosProfissional.Telefone))
-                {
-                    mensagemErro = "O telefone do profissional é obrigatório.";
+                    mensagemErro = "O documento do profissional é obrigatório.";
                     return;
                 }
                 if (string.IsNullOrWhiteSpace(DadosProfissional.Documento))
@@ -510,13 +511,11 @@
                 try
                 {
                     using var context = await DbFactory.CreateDbContextAsync();
-                    var profissional = await context.Profissional.FirstOrDefaultAsync(p => p.Email == Usuario.Email);
+                    var profissional = await context.Profissional.FirstOrDefaultAsync(p => p.Id == Usuario.ProfissionalId);
                     
                     if (profissional != null)
                     {
                         // Atualizar dados existentes
-                        profissional.Nome = DadosProfissional.Nome;
-                        profissional.Telefone = DadosProfissional.Telefone;
                         profissional.TipoDocumento = DadosProfissional.TipoDocumento;
                         profissional.Documento = DadosProfissional.Documento;
                         profissional.DataNacimento = DadosProfissional.DataNacimento;
@@ -530,9 +529,6 @@
                         // Criar novo registro
                         profissional = new Profissional
                         {
-                            Nome = DadosProfissional.Nome,
-                            Email = Usuario.Email,
-                            Telefone = DadosProfissional.Telefone,
                             TipoDocumento = DadosProfissional.TipoDocumento,
                             Documento = DadosProfissional.Documento,
                             DataNacimento = DadosProfissional.DataNacimento,

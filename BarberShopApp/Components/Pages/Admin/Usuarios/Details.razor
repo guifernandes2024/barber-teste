@@ -89,14 +89,14 @@
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="mb-3">
-                                        <label class="form-label fw-bold">Nome do Profissional:</label>
-                                        <p class="form-control-plaintext">@DadosProfissional.Nome</p>
+                                        <label class="form-label fw-bold">Tipo de Documento:</label>
+                                        <p class="form-control-plaintext">@DadosProfissional.TipoDocumento</p>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="mb-3">
-                                        <label class="form-label fw-bold">Telefone do Profissional:</label>
-                                        <p class="form-control-plaintext">@DadosProfissional.Telefone</p>
+                                        <label class="form-label fw-bold">Número do Documento:</label>
+                                        <p class="form-control-plaintext">@DadosProfissional.Documento</p>
                                     </div>
                                 </div>
                             </div>
@@ -199,21 +199,21 @@
             {
                 var roles = await UserManager.GetRolesAsync(Usuario);
                 PerfilSelecionado = roles.FirstOrDefault() ?? "";
-                
+
                 // Se for profissional, carregar os dados do profissional
                 if (PerfilSelecionado == "Profissional")
                 {
                     using var context = await DbFactory.CreateDbContextAsync();
                     DadosProfissional = await context.Profissional
                         .Include(p => p.Especialidades)
-                        .FirstOrDefaultAsync(p => p.Email == Usuario.Email);
+                        .FirstOrDefaultAsync(p => p.Id == Usuario.ProfissionalId);
                 }
             }
         }
         catch (Exception ex)
         {
-            // Log do erro se necessário
-        }
+			Console.WriteLine($"Erro ao carregar usuário: {ex.Message}");
+		}
         finally
         {
             isLoading = false;

@@ -5,10 +5,14 @@
 @using BarberShopApp.Core.Models
 @using BarberShopApp.Core.Services
 @using Microsoft.JSInterop
+@using Microsoft.AspNetCore.Identity
+@using BarberShopApp.Data
 @inject IDbContextFactory<BarberShopApp.Data.ApplicationDbContext> DbFactory
 @inject NavigationManager NavigationManager
 @inject HorarioService HorarioService
 @inject IJSRuntime JSRuntime
+@inject UserManager<ApplicationUser> UserManager
+@inject SignInManager<ApplicationUser> SignInManager
 
 @rendermode InteractiveServer
 <PageTitle>Novo Agendamento - Barbearia</PageTitle>
@@ -34,7 +38,7 @@
             </div>
 
             <!-- Passo 2: Seleção de Profissional -->
-            @if (ServicosSelecionados.Any())
+            @if (ServicosSelecionados.Any() && !isProfissional)
             {
                 <div class="card booking-card mb-4">
                     <div class="card-header">
@@ -53,13 +57,20 @@
             }
 
             <!-- Passo 3: Seleção de Data e Horário -->
-            @if (ServicosSelecionados.Any() && ProfissionalSelecionado != null)
+            @if (ServicosSelecionados.Any() && (ProfissionalSelecionado != null || isProfissional))
             {
                 <div class="card mb-4">
                     <div class="card-header">
                         <h5 class="mb-0">
                             <i class="fas fa-calendar-alt me-2"></i>
-                            Passo 3: Selecionar Data e Horário
+                            @if (isProfissional)
+                            {
+                                <span>Passo 2: Selecionar Data e Horário</span>
+                            }
+                            else
+                            {
+                                <span>Passo 3: Selecionar Data e Horário</span>
+                            }
                         </h5>
                     </div>
                     <div class="card-body">
@@ -78,7 +89,14 @@
                     <div class="card-header">
                         <h5 class="mb-0">
                             <i class="fas fa-user me-2"></i>
-                            Passo 4: Dados do Cliente
+                            @if (isProfissional)
+                            {
+                                <span>Passo 3: Dados do Cliente</span>
+                            }
+                            else
+                            {
+                                <span>Passo 4: Dados do Cliente</span>
+                            }
                         </h5>
                     </div>
                     <div class="card-body">
@@ -115,7 +133,11 @@
                             <div class="alert alert-info">
                                 <strong>Resumo do Agendamento:</strong><br />
                                 <strong>Data/Hora:</strong> @HorarioSelecionado.Value.ToString("dd/MM/yyyy HH:mm")<br />
-                                <strong>Profissional:</strong> @ProfissionalSelecionado?.Nome<br />
+                                <strong>Profissional:</strong> @GetProfissionalNome()<br />
+                                @if (ProfissionalSelecionado?.Fumante == true)
+                                {
+                                    <strong>Observação:</strong> <span class="text-warning">Profissional é fumante</span><br />
+                                }
                                 <strong>Serviços:</strong> @string.Join(", ", ServicosSelecionados.Select(s => s.Nome))<br />
                                 <strong>Duração:</strong> @ServicosSelecionados.Sum(s => s.DuracaoEmMinutos) minutos<br />
                                 <strong>Valor Total:</strong> R$ @ServicosSelecionados.Sum(s => s.Preco).ToString("F2")
@@ -144,12 +166,24 @@
     private List<Profissional> Profissionais { get; set; } = new();
     private Profissional? ProfissionalSelecionado { get; set; }
     private DateTime? HorarioSelecionado { get; set; }
+    private ApplicationUser? currentUser;
+    private bool isProfissional = false;
 
     protected override async Task OnInitializedAsync()
     {
         Agendamento = new Agendamento();
+        await VerificarUsuario();
         await CarregarServicos();
         await CarregarProfissionais();
+    }
+
+    private async Task VerificarUsuario()
+    {
+        currentUser = await UserManager.GetUserAsync(SignInManager.Context.User);
+        if (currentUser != null)
+        {
+            isProfissional = await UserManager.IsInRoleAsync(currentUser, "Profissional");
+        }
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -177,21 +211,46 @@
     private async Task CarregarProfissionais()
     {
         using var context = DbFactory.CreateDbContext();
-        Profissionais = await context.Profissional
-            .Include(p => p.Especialidades)
-            .ToListAsync();
+        
+        if (isProfissional && currentUser?.ProfissionalId.HasValue == true)
+        {
+            // Se for profissional, carregar apenas ele mesmo
+            var profissional = await context.Profissional
+                .Include(p => p.Especialidades)
+                .FirstOrDefaultAsync(p => p.Id == currentUser.ProfissionalId.Value);
+            
+            if (profissional != null)
+            {
+                Profissionais = new List<Profissional> { profissional };
+                ProfissionalSelecionado = profissional; // Auto-selecionar
+            }
+        }
+        else
+        {
+            // Se for admin, carregar todos os profissionais
+            Profissionais = await context.Profissional
+                .Include(p => p.Especialidades)
+                .ToListAsync();
+        }
     }
 
-    private async Task OnServicosSelecionadosChanged(List<Servico> servicos)
+    private void OnServicosSelecionadosChanged(List<Servico> servicos)
     {
         ServicosSelecionados = servicos;
         // Limpar seleções dependentes quando serviços mudam
         ProfissionalSelecionado = null;
         HorarioSelecionado = null;
+        
+        // Se for profissional, definir automaticamente o profissional
+        if (isProfissional && Profissionais.Any())
+        {
+            ProfissionalSelecionado = Profissionais.First();
+        }
+        
         StateHasChanged();
     }
 
-    private async Task OnProfissionalSelecionadoChanged(Profissional? profissional)
+    private void OnProfissionalSelecionadoChanged(Profissional? profissional)
     {
         ProfissionalSelecionado = profissional;
         // Limpar horário quando profissional muda
@@ -199,7 +258,7 @@
         StateHasChanged();
     }
 
-    private async Task OnHorarioSelecionado(DateTime horario)
+    private void OnHorarioSelecionado(DateTime horario)
     {
         HorarioSelecionado = horario;
         Agendamento.DataHora = horario;
@@ -238,5 +297,26 @@
             // Tratar erro
             Console.WriteLine($"Erro ao criar agendamento: {ex.Message}");
         }
+    }
+
+    private string GetProfissionalNome()
+    {
+        if (ProfissionalSelecionado == null)
+        {
+            return "Profissional"; // Fallback
+        }
+
+        // Buscar o nome através do ApplicationUser associado
+        using var context = DbFactory.CreateDbContext();
+        var user = context.Users.FirstOrDefault(u => u.ProfissionalId == ProfissionalSelecionado.Id);
+        
+        var nome = user?.Nome ?? "Profissional";
+        
+        if (ProfissionalSelecionado.Fumante == true)
+        {
+            nome += " (Fumante)";
+        }
+        
+        return nome;
     }
 }

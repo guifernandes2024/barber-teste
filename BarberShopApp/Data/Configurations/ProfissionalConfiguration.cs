@@ -12,20 +12,6 @@ namespace BarberShopApp.Data.Configurations
 
             builder.HasKey(p => p.Id);
 
-            builder.Property(p => p.Nome)
-                .IsRequired();
-
-            builder.Property(p => p.Email)
-                .IsRequired()
-                .HasMaxLength(255); // A typical email max length
-
-            builder.HasIndex(p => p.Email)
-                .IsUnique(); // Ensure emails are unique
-
-            builder.Property(p => p.Telefone)
-                .IsRequired()
-                .HasMaxLength(20);
-
             builder.Property(p => p.TipoDocumento)
                 .IsRequired()
                 .HasConversion<string>(); // Store enum as string in DB

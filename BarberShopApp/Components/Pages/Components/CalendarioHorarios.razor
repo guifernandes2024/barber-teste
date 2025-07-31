@@ -16,7 +16,7 @@
                 <h5>Horários Disponíveis para @DataSelecionada.Value.ToString("dd/MM/yyyy"):</h5>
                 <div class="alert alert-info">
                     <strong>Serviços:</strong> @string.Join(", ", ServicosSelecionados.Select(s => s.Nome))<br />
-                    <strong>Profissional:</strong> @ProfissionalSelecionado.Nome<br />
+                    <strong>Profissional:</strong> Profissional<br />
                     <strong>Duração Total:</strong> @ServicosSelecionados.Sum(s => s.DuracaoEmMinutos) minutos
                     @if (DataSelecionada?.Date == DateTime.Today)
                     {
@@ -77,7 +77,7 @@
                 <div class="alert alert-success">
                     <strong>Agendamento Selecionado:</strong><br />
                     <strong>Data/Hora:</strong> @HorarioSelecionado.Value.ToString("dd/MM/yyyy HH:mm")<br />
-                    <strong>Profissional:</strong> @ProfissionalSelecionado?.Nome<br />
+                    <strong>Profissional:</strong> Profissional<br />
                     <strong>Serviços:</strong> @string.Join(", ", ServicosSelecionados.Select(s => s.Nome))<br />
                     <strong>Duração:</strong> @ServicosSelecionados.Sum(s => s.DuracaoEmMinutos) minutos<br />
                     <strong>Valor Total:</strong> R$ @ServicosSelecionados.Sum(s => s.Preco).ToString("F2")

@@ -103,8 +103,8 @@
     height: 100%;
 }
 
-.service-card:hover {
-    transform: translateY(-5px);
+    .service-card:hover {
+        transform: translateY(-5px);
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
 }
 
@@ -166,7 +166,7 @@
 .booking-section {
     padding: 5rem 0;
     background: linear-gradient(135deg, #dee2e6 0%, #ced4da 100%);
-}
+    }
 
 .booking-card {
     background: white;

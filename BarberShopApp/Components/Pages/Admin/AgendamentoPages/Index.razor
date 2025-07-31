@@ -91,12 +91,13 @@
                             <h6 class="card-title">@agendamento.NomeDoCliente</h6>
                             <p class="card-text">
                                 <strong>Telefone:</strong> @agendamento.NumeroDoCliente<br/>
-
-							</p><strong>Serviços:</strong>
-							@foreach (var servico in agendamento.Servicos)
-								{
-                                     @servico?.Nome <br/>
-								}
+                                <strong>Profissional:</strong> @GetProfissionalNome(agendamento.ProfissionalId)<br/>
+                                <strong>Serviços:</strong>
+                                @foreach (var servico in agendamento.Servicos)
+                                {
+                                    <span class="badge bg-primary me-1">@servico?.Nome</span>
+                                }
+                            </p>
                             @if (!string.IsNullOrEmpty(agendamento.Observacoes))
                             {
                                 <p class="card-text">

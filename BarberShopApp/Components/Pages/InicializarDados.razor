@@ -117,18 +117,15 @@
             // Criar profissional
             var profissional = new Profissional()
                 {
-                    Nome = "Carlos Souza",
                     Agendamentos = new List<Agendamento>(),
                     DataAtualizacao = DateTime.Now,
                     ImgUrl = "https://example.com/imagem-profissional.jpg",
                     DataNacimento = new DateTime(1990, 1, 1),
                     TipoDocumento = DocumentType.CPF,
                     Documento = "12345678901",
-                    Email = "carlos@barbearia.com",
                     Especialidades = servicos,
                     PercentualDeComissao = 50,
-                    Fumante = false,
-                    Telefone = "(11) 99999-2222"
+                    Fumante = false
                 };
 
             context.Profissional.Add(profissional);
@@ -138,8 +135,11 @@
             var profissionalUser = new ApplicationUser
             {
                 UserName = "carlos",
+                Nome = "Carlos Souza",
                 Email = "carlos@barbearia.com",
-                EmailConfirmed = true
+                PhoneNumber = "(11) 99999-2222",
+                EmailConfirmed = true,
+                ProfissionalId = profissional.Id
             };
 
             var profissionalPassword = "Profissional@123";

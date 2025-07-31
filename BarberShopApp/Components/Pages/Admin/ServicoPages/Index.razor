@@ -90,9 +90,9 @@
                                         @if (!string.IsNullOrEmpty(servico.ImgUrl))
                                         {
                                             <img src="@servico.ImgUrl"
-                                                 alt="Imagem do serviço"
-                                                 class="img-fluid rounded mb-2"
-                                                 style="max-height: 200px; object-fit: cover; width: 100%;" />
+                                            alt="Imagem do serviço"
+                                            class="img-fluid rounded mb-2"
+                                            style="max-height: 200px; object-fit: cover; width: 100%;" />
                                         }
                                         <p class="card-text">@servico.Descricao</p>
                                         <div class="row">
@@ -145,7 +145,7 @@
     private bool isLoading = true;
     private List<Servico> Servicos { get; set; } = new();
     private List<Servico> ServicosFiltrados { get; set; } = new();
-    
+
     // Filtros
     private string FiltroNome { get; set; } = string.Empty;
     private decimal? FiltroPrecoMinimo { get; set; }
@@ -171,8 +171,8 @@
         }
         catch (Exception ex)
         {
-            // Log do erro se necessário
-        }
+			Console.WriteLine($"Erro ao carregar serviços: {ex.Message}");
+		}
         finally
         {
             isLoading = false;

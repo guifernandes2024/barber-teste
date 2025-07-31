@@ -179,7 +179,7 @@
                                     </h4>
                                     <p class="step-description">Selecione o profissional que irá atendê-lo</p>
                                     
-                                    <!-- Renderização direta dos profissionais -->
+                                                                        <!-- Renderização direta dos profissionais -->
                                     @if (ServicosSelecionados.Any())
                                     {
                                         var profissionaisFiltrados = Profissionais
@@ -192,32 +192,28 @@
                                             {
                                                 <div class="professional-card @(ProfissionalSelecionado?.Id == profissional.Id ? "selected" : "")"
                                                      @onclick="@(() => SelecionarProfissional(profissional))">
-                                                                                                         <div class="professional-image">
-                                                         <img src="@profissional.ImgUrl" alt="@profissional.Nome">
-                                                     </div>
+                                                    <div class="professional-image">
+                                                        <img src="@profissional.ImgUrl" alt="Profissional">
+                                                    </div>
                                                     <div class="professional-content">
-                                                        <h5 class="professional-name">@profissional.Nome</h5>
+                                                        <h5 class="professional-name">Profissional</h5>
                                                         <div class="professional-info">
                                                             <div class="info-item">
-                                                                <i class="fas fa-envelope"></i>
-                                                                <span>@profissional.Email</span>
-                                                            </div>
-                                                            <div class="info-item">
-                                                                <i class="fas fa-phone"></i>
-                                                                <span>@profissional.Telefone</span>
+                                                                <i class="fas fa-user"></i>
+                                                                <span>@GetProfissionalNome(profissional)</span>
                                                             </div>
                                                         </div>
-                                                                                                                 @if (profissional.Especialidades != null && profissional.Especialidades.Any())
-                                                         {
-                                                             <div class="professional-specialties">
-                                                                 <strong>Especialidades:</strong>
-                                                                 <span>@string.Join(", ", profissional.Especialidades.Select(e => e.Nome))</span>
-                                                             </div>
-                                                         }
-                                                         <div class="professional-smoking">
-                                                             <i class="fas @(profissional.Fumante ? "fa-smoking" : "fa-smoking-ban")"></i>
-                                                             <span>@(profissional.Fumante ? "Fumante" : "Não fumante")</span>
-                                                         </div>
+                                                        @if (profissional.Especialidades != null && profissional.Especialidades.Any())
+                                                        {
+                                                            <div class="professional-specialties">
+                                                                <strong>Especialidades:</strong>
+                                                                <span>@string.Join(", ", profissional.Especialidades.Select(e => e.Nome))</span>
+                                                            </div>
+                                                        }
+                                                        <div class="professional-smoking">
+                                                            <i class="fas @(profissional.Fumante ? "fa-smoking" : "fa-smoking-ban")"></i>
+                                                            <span>@(profissional.Fumante ? "Fumante" : "Não fumante")</span>
+                                                        </div>
                                                     </div>
                                                     <div class="professional-check">
                                                         <i class="fas fa-check"></i>
@@ -326,7 +322,7 @@
                                                     </div>
                                                     <div class="summary-item">
                                                         <span class="summary-label">Profissional:</span>
-                                                        <span class="summary-value">@ProfissionalSelecionado.Nome</span>
+                                                        <span class="summary-value">Profissional</span>
                                                     </div>
                                                     <div class="summary-item">
                                                         <span class="summary-label">Serviços:</span>
