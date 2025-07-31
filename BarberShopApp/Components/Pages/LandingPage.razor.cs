@@ -215,35 +215,82 @@ namespace BarberShopApp.Components.Pages
 
         private async Task CarregarHorarios()
         {
-            if (ServicosSelecionados.Any() && ProfissionalSelecionado != null && DataSelecionada.HasValue)
+            try
             {
-                try
+                // Se não há data selecionada, usar hoje
+                if (!DataSelecionada.HasValue)
                 {
-                    // Calcula a duração total dos serviços selecionados
-                    int duracaoTotal = ServicosSelecionados.Sum(s => s.DuracaoEmMinutos);
-                    
-                    // Usar o HorarioService para buscar horários disponíveis
-                    using var context = DbFactory.CreateDbContext();
-                    var horarioService = new HorarioService(DbFactory);
-                    
-                    // Buscar horários disponíveis para o profissional específico
-                    HorariosDisponiveis = await horarioService.GetHorariosDisponiveisAsync(
-                        DataSelecionada.Value, 
-                        ProfissionalSelecionado.Id, 
-                        duracaoTotal);
-                    
-
+                    DataSelecionada = DateTime.Today;
                 }
-                catch (Exception ex)
+
+                // Gerar todos os horários de 30 em 30 min das 8:00 às 18:00
+                var horariosBase = new List<DateTime>();
+                var horaInicio = DataSelecionada.Value.Date.AddHours(8); // 8:00
+                var horaFim = DataSelecionada.Value.Date.AddHours(18); // 18:00
+                
+                for (var hora = horaInicio; hora < horaFim; hora = hora.AddMinutes(30))
                 {
-                    Console.WriteLine($"Erro ao carregar horários: {ex.Message}");
-                    HorariosDisponiveis = new List<DateTime>();
+                    horariosBase.Add(hora);
+                }
+                
+                // Filtrar horários passados se for hoje
+                if (DataSelecionada?.Date == DateTime.Today)
+                {
+                    var agora = DateTime.Now;
+                    horariosBase = horariosBase.Where(h => h > agora).ToList();
+                }
+
+                // Se há profissional selecionado, verificar disponibilidade
+                if (ProfissionalSelecionado != null)
+                {
+                    try
+                    {
+                        using var context = DbFactory.CreateDbContext();
+                        var horarioService = new HorarioService(DbFactory);
+                        
+                        // Para cada horário base, verificar se está disponível para o profissional
+                        var horariosDisponiveis = new List<DateTime>();
+                        
+                        foreach (var horario in horariosBase)
+                        {
+                            // Se há serviços selecionados, usar a duração total
+                            int duracaoTotal = ServicosSelecionados.Any() 
+                                ? ServicosSelecionados.Sum(s => s.DuracaoEmMinutos) 
+                                : 30; // Duração padrão de 30 min se não há serviços
+                            
+                            // Verificar disponibilidade para este horário específico
+                            bool disponivel = await horarioService.VerificarDisponibilidadeAsync(
+                                horario, 
+                                ProfissionalSelecionado.Id, 
+                                duracaoTotal);
+                            
+                            if (disponivel)
+                            {
+                                horariosDisponiveis.Add(horario);
+                            }
+                        }
+                        
+                        HorariosDisponiveis = horariosDisponiveis;
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Erro ao verificar disponibilidade: {ex.Message}");
+                        // Em caso de erro, usar horários base
+                        HorariosDisponiveis = horariosBase;
+                    }
+                }
+                else
+                {
+                    // Se não há profissional selecionado, usar horários base
+                    HorariosDisponiveis = horariosBase;
                 }
             }
-            else
+            catch (Exception ex)
             {
+                Console.WriteLine($"Erro ao carregar horários: {ex.Message}");
                 HorariosDisponiveis = new List<DateTime>();
             }
+            
             StateHasChanged();
         }
 
@@ -276,6 +323,13 @@ namespace BarberShopApp.Components.Pages
             if (CurrentStep < TotalSteps && CanProceedToNextStep)
             {
                 CurrentStep++;
+                
+                // Se está indo para o Step 3 (horários), carregar horários automaticamente
+                if (CurrentStep == 3)
+                {
+                    await CarregarHorarios();
+                }
+                
                 StateHasChanged();
             }
         }

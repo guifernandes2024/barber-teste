@@ -180,7 +180,7 @@
                                                     <div class="d-flex justify-content-between">
                                                         <strong>Valor Total:</strong>
                                                         <strong class="text-success">R$ @ServicosSelecionados.Sum(s => s.Preco).ToString("F2")</strong>
-                                                    </div>
+                                            </div>
                                                 </div>
                                             </div>
                                         }
@@ -267,7 +267,7 @@
                                                                 }
                                                             </div>
                                                         </div>
-                                                    </div>
+                                                </div>
                                                 }
                                             </div>
                                         }
@@ -319,66 +319,81 @@
                                         </div>
                                     </div>
 
-                                    @if (ServicosSelecionados.Any() && ProfissionalSelecionado != null && DataSelecionada.HasValue)
-                                    {
-                                        <div class="row">
-                                            <div class="col-12">
-                                                <h5>Horários Disponíveis para @DataSelecionada.Value.ToString("dd/MM/yyyy"):</h5>
-                                                <div class="alert alert-info">
-                                                    <strong>Serviços:</strong> @string.Join(", ", ServicosSelecionados.Select(s => s.Nome))<br />
-                                                    <strong>Profissional:</strong> @ProfissionalSelecionado.Nome<br />
-                                                    <strong>Duração Total:</strong> @ServicosSelecionados.Sum(s => s.DuracaoEmMinutos) minutos
-                                                    @if (DataSelecionada?.Date == DateTime.Today)
-                                                    {
-                                                        <br />
-                                                        <small class="text-muted">
-                                                            <i class="fas fa-clock me-1"></i>
-                                                            Mostrando apenas horários futuros (a partir de 30 minutos após o horário atual)
-                                                        </small>
-                                                    }
-                                                </div>
-
-                                                @if (HorariosDisponiveis != null && HorariosDisponiveis.Any())
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <h5>Horários Disponíveis para @DataSelecionada?.ToString("dd/MM/yyyy") ?? DateTime.Today.ToString("dd/MM/yyyy"):</h5>
+                                             <div class="alert alert-info">
+                                                 <i class="fas fa-clock me-2"></i>
+                                                 <strong>Horários de 30 em 30 minutos (8:00 às 18:00)</strong><br />
+                                                @if (ProfissionalSelecionado != null)
                                                 {
-                                                    <div class="horarios-grid">
-                                                        @foreach (var horario in HorariosDisponiveis)
-                                                        {
-                                                            <button type="button"
-                                                            class="btn btn-outline-primary horario-btn @(HorarioSelecionado.HasValue && horario.Equals(HorarioSelecionado.Value) ? "active" : "")"
-                                                            @onclick="@(() => SelecionarHorario(horario))">
-                                                                @horario.ToString("HH:mm")
-                                                            </button>
-                                                        }
-                                                    </div>
+                                                    <strong>Profissional:</strong> @ProfissionalSelecionado.Nome
+
+                                                    <br />
+                                                    @if (ServicosSelecionados.Any())
+                                                    {
+                                                        <strong>Serviços:</strong> @string.Join(", ", ServicosSelecionados.Select(s => s.Nome))
+
+                                                        <br />
+                                                        <strong>Duração Total:</strong> @ServicosSelecionados.Sum(s => s.DuracaoEmMinutos) <text>minutos</text>
+
+                                                        <br />
+                                                    }
+                                                    else
+                                                    {
+                                                        <strong>Duração:</strong> <text>30 minutos (padrão)</text>
+
+                                                        <br />
+                                                    }
                                                 }
                                                 else
                                                 {
-                                                    <div class="alert alert-warning">
-                                                        <i class="fas fa-exclamation-triangle me-2"></i>
-                                                        @if (DataSelecionada?.Date == DateTime.Today)
-                                                        {
-                                                            <strong>Não há horários disponíveis para hoje.</strong><br />
-                                                            <small class="text-muted">
-                                                                Os horários disponíveis são mostrados a partir de 30 minutos após o horário atual.
-                                                            </small>
-                                                        }
-                                                        else
-                                                        {
-                                                            <strong>Não há horários disponíveis</strong>
-                                                            <p>para esta data, serviços e profissional selecionados</p>
-                                                        }
-                                                    </div>
+                                                    <strong>Status:</strong> <text>Selecione um profissional para ver horários disponíveis</text>
+
+                                                    <br />
                                                 }
-                                            </div>
+                                                 @if (DataSelecionada?.Date == DateTime.Today)
+                                                 {
+                                                     <small class="text-muted">
+                                                         <i class="fas fa-clock me-1"></i>
+                                                         Mostrando apenas horários futuros (maiores que o horário atual)
+                                                     </small>
+                                                 }
+                                             </div>
+
+                                            @if (HorariosDisponiveis != null && HorariosDisponiveis.Any())
+                                            {
+                                                <div class="horarios-grid">
+                                                    @foreach (var horario in HorariosDisponiveis)
+                                                    {
+                                                        <button type="button"
+                                                        class="btn btn-outline-primary horario-btn @(HorarioSelecionado.HasValue && horario.Equals(HorarioSelecionado.Value) ? "active" : "")"
+                                                        @onclick="@(() => SelecionarHorario(horario))">
+                                                            @horario.ToString("HH:mm")
+                                                        </button>
+                                                    }
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <div class="alert alert-warning">
+                                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                                    @if (DataSelecionada?.Date == DateTime.Today)
+                                                    {
+                                                        <strong>Não há horários disponíveis para hoje.</strong><br />
+                                                        <small class="text-muted">
+                                                            Os horários disponíveis são mostrados a partir de 30 minutos após o horário atual.
+                                                        </small>
+                                                    }
+                                                    else
+                                                    {
+                                                        <strong>Não há horários disponíveis</strong>
+                                                        <p>para esta data.</p>
+                                                    }
+                                                </div>
+                                            }
                                         </div>
-                                    }
-                                    else
-                                    {
-                                        <div class="alert alert-info">
-                                            <i class="fas fa-info-circle me-2"></i>
-                                            Para ver os horários disponíveis, selecione os serviços, o profissional e a data.
-                                        </div>
-                                    }
+                                    </div>
 
                                     @if (HorarioSelecionado.HasValue)
                                     {
