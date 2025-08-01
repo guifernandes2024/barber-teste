@@ -1,0 +1,413 @@
+/* Dashboard Styles */
+.dashboard-card {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.dashboard-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.dashboard-card .card-body {
+    padding: 1.5rem;
+}
+
+.dashboard-card .card-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 15px 15px 0 0 !important;
+    border: none;
+    padding: 1rem 1.5rem;
+}
+
+.dashboard-card .card-header h5 {
+    margin: 0;
+    font-weight: 600;
+}
+
+/* Cards de estatísticas */
+.stats-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    border-radius: 15px;
+    color: white;
+    transition: all 0.3s ease;
+}
+
+.stats-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.stats-card .card-body {
+    padding: 1.5rem;
+}
+
+.stats-card h4 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.stats-card p {
+    font-size: 0.9rem;
+    opacity: 0.9;
+    margin-bottom: 0;
+}
+
+.stats-card i {
+    opacity: 0.8;
+}
+
+/* Gráficos */
+.chart-container {
+    position: relative;
+    height: 300px;
+    margin: 1rem 0;
+}
+
+.chart-card {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.chart-card:hover {
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.chart-card .card-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 15px 15px 0 0 !important;
+    border: none;
+    padding: 1rem 1.5rem;
+}
+
+.chart-card .card-body {
+    padding: 1.5rem;
+}
+
+/* Tabela de agendamentos */
+.agendamentos-table {
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.agendamentos-table .table {
+    margin-bottom: 0;
+}
+
+.agendamentos-table .table th {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 1rem;
+    font-weight: 600;
+}
+
+.agendamentos-table .table td {
+    padding: 1rem;
+    vertical-align: middle;
+    border-color: #f8f9fa;
+}
+
+.agendamentos-table .table tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+/* Badges personalizados */
+.badge-custom {
+    border-radius: 20px;
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+/* Botões personalizados */
+.btn-dashboard {
+    border-radius: 25px;
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-dashboard:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* Responsividade - Desktop */
+@media (min-width: 1200px) {
+    .container-fluid {
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+    
+    .stats-card h4 {
+        font-size: 2.5rem;
+    }
+    
+    .chart-container {
+        height: 350px;
+    }
+}
+
+/* Responsividade - Tablet */
+@media (max-width: 1199px) and (min-width: 768px) {
+    .stats-card h4 {
+        font-size: 1.8rem;
+    }
+    
+    .chart-container {
+        height: 280px;
+    }
+    
+    .dashboard-card .card-body {
+        padding: 1.25rem;
+    }
+}
+
+/* Responsividade - Mobile */
+@media (max-width: 767px) {
+    .container-fluid {
+        padding: 0 1rem;
+    }
+    
+    .dashboard-card .card-body {
+        padding: 1rem;
+    }
+    
+    .stats-card h4 {
+        font-size: 1.5rem;
+    }
+    
+    .stats-card p {
+        font-size: 0.8rem;
+    }
+    
+    .stats-card i {
+        font-size: 1.5rem !important;
+    }
+    
+    .chart-container {
+        height: 250px;
+    }
+    
+    .chart-card .card-header {
+        padding: 0.75rem 1rem;
+    }
+    
+    .chart-card .card-header h5 {
+        font-size: 1rem;
+    }
+    
+    .chart-card .card-body {
+        padding: 1rem;
+    }
+    
+    /* Ajustes para tabela em mobile */
+    .agendamentos-table .table th,
+    .agendamentos-table .table td {
+        padding: 0.75rem 0.5rem;
+        font-size: 0.9rem;
+    }
+    
+    .badge-custom {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.7rem;
+    }
+    
+    /* Botões em mobile */
+    .btn-dashboard {
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+    }
+}
+
+/* Responsividade - Mobile Pequeno */
+@media (max-width: 575px) {
+    .container-fluid {
+        padding: 0 0.5rem;
+    }
+    
+    .stats-card h4 {
+        font-size: 1.3rem;
+    }
+    
+    .stats-card p {
+        font-size: 0.75rem;
+    }
+    
+    .stats-card i {
+        font-size: 1.25rem !important;
+    }
+    
+    .chart-container {
+        height: 200px;
+    }
+    
+    .chart-card .card-header {
+        padding: 0.5rem 0.75rem;
+    }
+    
+    .chart-card .card-header h5 {
+        font-size: 0.9rem;
+    }
+    
+    .chart-card .card-body {
+        padding: 0.75rem;
+    }
+    
+    /* Tabela em mobile pequeno */
+    .agendamentos-table .table th,
+    .agendamentos-table .table td {
+        padding: 0.5rem 0.25rem;
+        font-size: 0.8rem;
+    }
+    
+    .badge-custom {
+        padding: 0.2rem 0.4rem;
+        font-size: 0.65rem;
+    }
+    
+    /* Botões em mobile pequeno */
+    .btn-dashboard {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.8rem;
+    }
+    
+    /* Header do dashboard */
+    .display-4 {
+        font-size: 2rem;
+    }
+    
+    .lead {
+        font-size: 1rem;
+    }
+}
+
+/* Responsividade - Mobile Extra Pequeno */
+@media (max-width: 375px) {
+    .container-fluid {
+        padding: 0 0.25rem;
+    }
+    
+    .stats-card h4 {
+        font-size: 1.1rem;
+    }
+    
+    .stats-card p {
+        font-size: 0.7rem;
+    }
+    
+    .stats-card i {
+        font-size: 1rem !important;
+    }
+    
+    .chart-container {
+        height: 180px;
+    }
+    
+    .chart-card .card-header {
+        padding: 0.4rem 0.6rem;
+    }
+    
+    .chart-card .card-header h5 {
+        font-size: 0.8rem;
+    }
+    
+    .chart-card .card-body {
+        padding: 0.6rem;
+    }
+    
+    /* Tabela em mobile extra pequeno */
+    .agendamentos-table .table th,
+    .agendamentos-table .table td {
+        padding: 0.4rem 0.2rem;
+        font-size: 0.75rem;
+    }
+    
+    .badge-custom {
+        padding: 0.15rem 0.3rem;
+        font-size: 0.6rem;
+    }
+    
+    /* Botões em mobile extra pequeno */
+    .btn-dashboard {
+        padding: 0.3rem 0.6rem;
+        font-size: 0.75rem;
+    }
+    
+    /* Header do dashboard */
+    .display-4 {
+        font-size: 1.75rem;
+    }
+    
+    .lead {
+        font-size: 0.9rem;
+    }
+}
+
+/* Animações */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.dashboard-card {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+.dashboard-card:nth-child(1) { animation-delay: 0.1s; }
+.dashboard-card:nth-child(2) { animation-delay: 0.2s; }
+.dashboard-card:nth-child(3) { animation-delay: 0.3s; }
+.dashboard-card:nth-child(4) { animation-delay: 0.4s; }
+
+/* Loading spinner */
+.dashboard-loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 200px;
+}
+
+.dashboard-loading .spinner-border {
+    width: 3rem;
+    height: 3rem;
+    color: #667eea;
+}
+
+/* Ajustes específicos para gráficos responsivos */
+@media (max-width: 767px) {
+    canvas {
+        max-width: 100% !important;
+        height: auto !important;
+    }
+}
+
+/* Melhorias para orientação landscape em mobile */
+@media (max-width: 767px) and (orientation: landscape) {
+    .chart-container {
+        height: 200px;
+    }
+    
+    .stats-card h4 {
+        font-size: 1.2rem;
+    }
+    
+    .stats-card p {
+        font-size: 0.7rem;
+    }
+} 

@@ -23,7 +23,7 @@ namespace BarberShopApp.Core.Models
         [StringLength(500, ErrorMessage = "Observações devem ter no máximo 500 caracteres")]
         public string Observacoes { get; set; } = string.Empty;
 
-        public virtual IEnumerable<Servico> Servicos { get; set; } = null!;
+        public virtual ICollection<Servico> Servicos { get; set; } = new List<Servico>();
         public virtual Profissional Profissional { get; set; } = null!;
 
         public DateTime DataHoraFim => DataHora.AddMinutes(Servicos?.Sum( s => s.DuracaoEmMinutos) ?? 0);
@@ -41,7 +41,7 @@ namespace BarberShopApp.Core.Models
             DataHora = DateTime.Now;
         }
 
-        public Agendamento(DateTime dataHora, string nomeDoCliente, string numeroDoCliente, IEnumerable<Servico> servicos, Profissional profissional, string observacoes = "")
+        public Agendamento(DateTime dataHora, string nomeDoCliente, string numeroDoCliente, ICollection<Servico> servicos, Profissional profissional, string observacoes = "")
         {
             DataHora = dataHora;
             NomeDoCliente = nomeDoCliente;

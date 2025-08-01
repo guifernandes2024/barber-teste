@@ -5,23 +5,23 @@ namespace BarberShopApp.Core.Models
     public class Servico() : ModelBase
     {
 
-        [Required(ErrorMessage = "Nome é obrigatório")]
+        [Required(ErrorMessage = "Nome ï¿½ obrigatï¿½rio")]
         public string Nome { get; set; } = string.Empty;
 
         public string Descricao { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Preço é obrigatório")]
+        [Required(ErrorMessage = "Preï¿½o ï¿½ obrigatï¿½rio")]
         public decimal Preco { get; set; }
 
-        [Required(ErrorMessage = "A URL da imagem é obrigatória")]
-        [Url(ErrorMessage = "A URL da imagem é inválida.")]
+        [Required(ErrorMessage = "A URL da imagem ï¿½ obrigatï¿½ria")]
+        [Url(ErrorMessage = "A URL da imagem ï¿½ invï¿½lida.")]
         public string ImgUrl { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "A duração é obrigatório")]
-        [Range(1, 600, ErrorMessage = "A duração deve estar entre 1 e 600 minutos.")]
+        [Required(ErrorMessage = "A duraï¿½ï¿½o ï¿½ obrigatï¿½rio")]
+        [Range(1, 600, ErrorMessage = "A duraï¿½ï¿½o deve estar entre 1 e 600 minutos.")]
         public int DuracaoEmMinutos { get; set; }
 
-        public virtual ICollection<Agendamento>? Agendamentos { get; set; }
-        public virtual ICollection<Profissional>? Profissionals { get; set; }
+        public virtual ICollection<Agendamento> Agendamentos { get; set; } = new List<Agendamento>();
+        public virtual ICollection<Profissional> Profissionals { get; set; } = new List<Profissional>();
     }
 }

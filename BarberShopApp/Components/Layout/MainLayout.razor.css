@@ -25,6 +25,7 @@ main {
     display: flex;
     align-items: center;
     color: #ffffff;
+    position: relative;
 }
 
     .top-row ::deep a, .top-row ::deep .btn-link {
@@ -42,13 +43,151 @@ main {
         text-overflow: ellipsis;
     }
 
+/* Mobile Menu Styles */
+.mobile-menu {
+    display: flex;
+    align-items: center;
+}
+
+.mobile-menu button {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    transition: all 0.2s ease;
+}
+
+.mobile-menu button:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+}
+
+.mobile-menu button:active {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.mobile-brand {
+    flex: 1;
+    text-align: center;
+}
+
+.mobile-user-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.mobile-nav {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background-color: #2d2d2d;
+    border-bottom: 1px solid #404040;
+    z-index: 1000;
+    display: none;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.mobile-nav.show {
+    display: block;
+}
+
+.mobile-nav-item {
+    border-bottom: 1px solid #404040;
+    background-color: #2d2d2d;
+}
+
+.mobile-nav-item:last-child {
+    border-bottom: none;
+}
+
+.mobile-nav-link {
+    display: block;
+    padding: 1rem;
+    color: #ffffff !important;
+    text-decoration: none !important;
+    background-color: #2d2d2d;
+    border: none;
+    width: 100%;
+    text-align: left;
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+.mobile-nav-link:hover {
+    background-color: #404040;
+    color: #ffffff !important;
+    text-decoration: none !important;
+}
+
+.mobile-nav-link:active {
+    background-color: #007bff;
+    color: #ffffff !important;
+}
+
+.mobile-nav-link.active {
+    background-color: #007bff;
+    color: #ffffff !important;
+}
+
+/* Desktop User Info */
+.desktop-user-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
 @media (max-width: 640.98px) {
     .top-row {
         justify-content: space-between;
+        padding: 0 1rem;
+        position: relative;
     }
 
     .top-row ::deep a, .top-row ::deep .btn-link {
         margin-left: 0;
+    }
+    
+    /* Esconder a sidebar no mobile para evitar duplicação */
+    .sidebar {
+        display: none;
+    }
+    
+    /* Ajustar o main para ocupar toda a largura no mobile */
+    main {
+        width: 100%;
+        margin-left: 0;
+    }
+    
+    /* CORRIGIDO: Remover a regra que força display: block */
+    /* .mobile-nav {
+        display: block;
+        background-color: #2d2d2d;
+        border: 1px solid #404040;
+    } */
+    
+    /* CORRIGIDO: Manter apenas a regra de toggle */
+    .mobile-nav.show {
+        display: block;
+    }
+    
+    /* Debug: Garantir que os links sejam visíveis */
+    .mobile-nav-link {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        color: #ffffff !important;
+        background-color: #2d2d2d;
+        border: none;
+        padding: 1rem;
+        margin: 0;
+        width: 100%;
+        text-align: left;
+        font-size: 1rem;
+        font-weight: 500;
     }
 }
 
@@ -62,6 +201,7 @@ main {
         height: 100vh;
         position: sticky;
         top: 0;
+        display: block;
     }
 
     .top-row {

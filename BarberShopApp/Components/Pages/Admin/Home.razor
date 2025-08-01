@@ -8,123 +8,218 @@
 @inject IDbContextFactory<ApplicationDbContext> DbFactory
 @inject UserManager<ApplicationUser> UserManager
 @inject SignInManager<ApplicationUser> SignInManager
+@inject IJSRuntime JSRuntime
 
 @rendermode InteractiveServer
 <PageTitle>Dashboard - Área Administrativa</PageTitle>
 
-<div class="container">
+<div class="container-fluid">
+    <!-- Header -->
     <div class="row mb-4">
-        <div class="col-12 text-center">
-            <h1 class="display-4">✂️ Barbearia</h1>
-            <p class="lead">Sistema de Agendamento Inteligente</p>
-        </div>
-    </div>
-
-    <div class="row mb-4">
-        <div class="col-md-4">
-            <div class="card text-center">
-                <div class="card-body">
-                    <i class="fas fa-calendar-plus fa-3x text-primary mb-3"></i>
-                    <h5 class="card-title">Novo Agendamento</h5>
-                    <p class="card-text">Agende seu horário de forma rápida e fácil</p>
-                    <a href="/admin/agendamentos/create" class="btn btn-primary">Agendar</a>
+        <div class="col-12">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
+                <div class="mb-3 mb-md-0">
+                    <h1 class="display-4 mb-2">✂️ Dashboard</h1>
+                    <p class="lead text-muted mb-0">
+                        @if (isProfissional)
+                        {
+                            <span>Visão do Profissional - @currentUser?.Nome</span>
+                        }
+                        else
+                        {
+                            <span>Visão Geral da Barbearia</span>
+                        }
+                    </p>
                 </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card text-center">
-                <div class="card-body">
-                    <i class="fas fa-list fa-3x text-info mb-3"></i>
-                    <h5 class="card-title">Ver Agendamentos</h5>
-                    <p class="card-text">Visualize todos os agendamentos</p>
-                    <a href="/admin/agendamentos" class="btn btn-info">Ver Todos</a>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card text-center">
-                <div class="card-body">
-                    <i class="fas fa-cogs fa-3x text-success mb-3"></i>
-                    <h5 class="card-title">Gerenciar Serviços</h5>
-                    <p class="card-text">Configure os serviços oferecidos</p>
-                    <a href="/admin/servicos" class="btn btn-success">Gerenciar</a>
+                <div class="d-flex flex-column flex-sm-row gap-2">
+                    <a href="/admin/agendamentos/create" class="btn btn-primary btn-dashboard">
+                        <i class="fas fa-plus me-1"></i> Novo Agendamento
+                    </a>
+                    <a href="/admin/agendamentos" class="btn btn-outline-primary btn-dashboard">
+                        <i class="fas fa-calendar me-1"></i> Ver Agendamentos
+                    </a>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- Cards de Estatísticas -->
     @if (Estatisticas != null)
     {
         <div class="row mb-4">
-            <div class="col-md-3">
-                <div class="card bg-primary text-white">
-                    <div class="card-body text-center">
-                        <h4>@Estatisticas.TotalAgendamentos</h4>
-                        <p class="mb-0">Total de Agendamentos</p>
+            <div class="col-6 col-md-3 mb-3">
+                <div class="card stats-card h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h4 class="mb-0">@Estatisticas.TotalAgendamentos</h4>
+                                <p class="mb-0">Total de Agendamentos</p>
+                            </div>
+                            <div class="d-none d-md-block">
+                                <i class="fas fa-calendar-check fa-2x"></i>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="card bg-success text-white">
-                    <div class="card-body text-center">
-                        <h4>@Estatisticas.AgendamentosHoje</h4>
-                        <p class="mb-0">Agendamentos Hoje</p>
+            <div class="col-6 col-md-3 mb-3">
+                <div class="card stats-card h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h4 class="mb-0">@Estatisticas.AgendamentosHoje</h4>
+                                <p class="mb-0">Agendamentos Hoje</p>
+                            </div>
+                            <div class="d-none d-md-block">
+                                <i class="fas fa-clock fa-2x"></i>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="card bg-info text-white">
-                    <div class="card-body text-center">
-                        <h4>@Estatisticas.TotalServicos</h4>
-                        <p class="mb-0">Serviços Disponíveis</p>
+            <div class="col-6 col-md-3 mb-3">
+                <div class="card stats-card h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h4 class="mb-0">@Estatisticas.TotalServicos</h4>
+                                <p class="mb-0">Serviços Disponíveis</p>
+                            </div>
+                            <div class="d-none d-md-block">
+                                <i class="fas fa-cut fa-2x"></i>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="card bg-warning text-white">
-                    <div class="card-body text-center">
-                        <h4>R$ @Estatisticas.FaturamentoTotal.ToString("F2")</h4>
-                        <p class="mb-0">Faturamento Total</p>
+            <div class="col-6 col-md-3 mb-3">
+                <div class="card stats-card h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h4 class="mb-0">R$ @Estatisticas.FaturamentoTotal.ToString("F2")</h4>
+                                <p class="mb-0">
+                                    @if (isProfissional)
+                                    {
+                                        <span>Minha Comissão</span>
+                                    }
+                                    else
+                                    {
+                                        <span>Faturamento Total</span>
+                                    }
+                                </p>
+                            </div>
+                            <div class="d-none d-md-block">
+                                <i class="fas fa-dollar-sign fa-2x"></i>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     }
 
+    <!-- Gráficos -->
+    <div class="row mb-4">
+        <!-- Gráfico de Agendamentos por Mês -->
+        <div class="col-12 col-lg-6 mb-3">
+            <div class="card chart-card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-chart-line me-2"></i>Agendamentos por Mês</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="agendamentosPorMesChart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gráfico de Serviços Mais Populares -->
+        <div class="col-12 col-lg-6 mb-3">
+            <div class="card chart-card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Serviços Mais Populares</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="servicosPopularesChart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráfico de Horários Mais Procurados -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card chart-card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Horários Mais Procurados</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="horariosProcuradosChart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Próximos Agendamentos -->
     @if (ProximosAgendamentos != null && ProximosAgendamentos.Any())
     {
         <div class="row">
             <div class="col-12">
-                <div class="card">
+                <div class="card agendamentos-table">
                     <div class="card-header">
                         <h5 class="mb-0">📅 Próximos Agendamentos</h5>
                     </div>
-                    <div class="card-body">
+                    <div class="card-body p-0">
                         <div class="table-responsive">
-                            <table class="table table-hover">
+                            <table class="table table-hover mb-0">
                                 <thead>
                                     <tr>
-                                        <th>Data/Hora</th>
+                                        <th class="d-none d-md-table-cell">Data/Hora</th>
                                         <th>Cliente</th>
-                                        <th>Serviços</th>
-                                        <th>Duração</th>
-                                        <th>Preço</th>
+                                        <th class="d-none d-lg-table-cell">Serviços</th>
+                                        <th class="d-none d-md-table-cell">Duração</th>
+                                        <th class="d-none d-lg-table-cell">Preço</th>
+                                        <th>Ações</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     @foreach (var agendamento in ProximosAgendamentos)
                                     {
                                         <tr>
-                                            <td>@agendamento.DataHora.ToString("dd/MM/yyyy HH:mm")</td>
-                                            <td>@agendamento.NomeDoCliente</td>
+                                            <td class="d-none d-md-table-cell">@agendamento.DataHora.ToString("dd/MM/yyyy HH:mm")</td>
                                             <td>
+                                                <div>
+                                                    <strong>@agendamento.NomeDoCliente</strong>
+                                                    <div class="d-md-none text-muted small">
+                                                        @agendamento.DataHora.ToString("dd/MM HH:mm")
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="d-none d-lg-table-cell">
                                                 @foreach (var servico in agendamento.Servicos)
                                                 {
-                                                    <span class="badge bg-primary me-1">@servico.Nome</span>
+                                                    <span class="badge badge-custom bg-primary me-1">@servico.Nome</span>
                                                 }
                                             </td>
-                                            <td>@agendamento.Servicos.Sum(s => s.DuracaoEmMinutos) min</td>
-                                            <td>R$ @agendamento.Servicos.Sum(s => s.Preco).ToString("F2")</td>
+                                            <td class="d-none d-md-table-cell">@agendamento.Servicos.Sum(s => s.DuracaoEmMinutos) min</td>
+                                            <td class="d-none d-lg-table-cell">R$ @agendamento.Servicos.Sum(s => s.Preco).ToString("F2")</td>
+                                            <td>
+                                                <div class="d-flex gap-1">
+                                                    <a href="@($"/admin/agendamentos/details?id={agendamento.Id}")" class="btn btn-sm btn-outline-info">
+                                                        <i class="fas fa-eye"></i>
+                                                    </a>
+                                                    <div class="d-lg-none">
+                                                        <small class="text-muted d-block">@agendamento.Servicos.Sum(s => s.DuracaoEmMinutos)min</small>
+                                                        <small class="text-muted">R$ @agendamento.Servicos.Sum(s => s.Preco).ToString("F2")</small>
+                                                    </div>
+                                                </div>
+                                            </td>
                                         </tr>
                                     }
                                 </tbody>
@@ -142,11 +237,23 @@
     private List<Agendamento> ProximosAgendamentos { get; set; } = new();
     private ApplicationUser? currentUser;
     private bool isProfissional = false;
+    private List<DadosGrafico> dadosAgendamentosPorMes = new();
+    private List<DadosGrafico> dadosServicosPopulares = new();
+    private List<DadosGrafico> dadosHorariosProcurados = new();
 
     protected override async Task OnInitializedAsync()
     {
         await VerificarUsuario();
         await CarregarDados();
+        await CarregarDadosGraficos();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await RenderizarGraficos();
+        }
     }
 
     private async Task VerificarUsuario()
@@ -182,11 +289,35 @@
             .Include(a => a.Servicos)
             .ToListAsync();
 
-        var faturamentoTotal = agendamentosComServicos
-            .Select(a => a.Servicos.Sum(s => s.Preco))
-            .ToList();
+        decimal faturamentoTotalCalculado;
         
-        var faturamentoTotalCalculado = faturamentoTotal.Sum();
+        if (isProfissional && currentUser?.ProfissionalId.HasValue == true)
+        {
+            // Para profissionais, calcular faturamento baseado na comissão
+            var profissional = await context.Profissional
+                .FirstOrDefaultAsync(p => p.Id == currentUser.ProfissionalId.Value);
+            
+            if (profissional != null && profissional.PercentualDeComissao.HasValue)
+            {
+                var percentualComissao = profissional.PercentualDeComissao.Value / 100m; // Converter para decimal
+                var faturamentoBruto = agendamentosComServicos
+                    .Select(a => a.Servicos.Sum(s => s.Preco))
+                    .Sum();
+                
+                faturamentoTotalCalculado = faturamentoBruto * percentualComissao;
+            }
+            else
+            {
+                faturamentoTotalCalculado = 0;
+            }
+        }
+        else
+        {
+            // Para admins, mostrar faturamento total da barbearia
+            faturamentoTotalCalculado = agendamentosComServicos
+                .Select(a => a.Servicos.Sum(s => s.Preco))
+                .Sum();
+        }
 
         Estatisticas = new EstatisticasDashboard
         {
@@ -202,8 +333,74 @@
             .Include(a => a.Servicos)
             .Where(a => a.DataHora >= agora)
             .OrderBy(a => a.DataHora)
-            .Take(5)
+            .Take(10)
             .ToListAsync();
+    }
+
+    private async Task CarregarDadosGraficos()
+    {
+        using var context = DbFactory.CreateDbContext();
+        
+        var query = context.Agendamento.AsQueryable();
+        
+        // Se for profissional, filtrar apenas seus agendamentos
+        if (isProfissional && currentUser?.ProfissionalId.HasValue == true)
+        {
+            query = query.Where(a => a.ProfissionalId == currentUser.ProfissionalId.Value);
+        }
+
+        var agendamentos = await query
+            .Include(a => a.Servicos)
+            .ToListAsync();
+
+        // Dados para gráfico de agendamentos por mês
+        var agendamentosPorMes = agendamentos
+            .GroupBy(a => new { a.DataHora.Year, a.DataHora.Month })
+            .Select(g => new DadosGrafico
+            {
+                Label = $"{g.Key.Month}/{g.Key.Year}",
+                Valor = g.Count()
+            })
+            .OrderBy(d => d.Label)
+            .ToList();
+
+        dadosAgendamentosPorMes = agendamentosPorMes;
+
+        // Dados para gráfico de serviços populares
+        var servicosPopulares = agendamentos
+            .SelectMany(a => a.Servicos)
+            .GroupBy(s => s.Nome)
+            .Select(g => new DadosGrafico
+            {
+                Label = g.Key,
+                Valor = g.Count()
+            })
+            .OrderByDescending(d => d.Valor)
+            .Take(5)
+            .ToList();
+
+        dadosServicosPopulares = servicosPopulares;
+
+        // Dados para gráfico de horários mais procurados
+        var horariosProcurados = agendamentos
+            .GroupBy(a => a.DataHora.Hour)
+            .Select(g => new DadosGrafico
+            {
+                Label = $"{g.Key:00}:00",
+                Valor = g.Count()
+            })
+            .OrderBy(d => d.Label)
+            .ToList();
+
+        dadosHorariosProcurados = horariosProcurados;
+    }
+
+    private async Task RenderizarGraficos()
+    {
+        await JSRuntime.InvokeVoidAsync("renderizarGraficos", 
+            dadosAgendamentosPorMes, 
+            dadosServicosPopulares, 
+            dadosHorariosProcurados);
     }
 
     public class EstatisticasDashboard
@@ -213,4 +410,11 @@
         public int TotalServicos { get; set; }
         public decimal FaturamentoTotal { get; set; }
     }
+
+    public class DadosGrafico
+    {
+        public string Label { get; set; } = string.Empty;
+        public int Valor { get; set; }
+    }
 }
+

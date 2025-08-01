@@ -19,7 +19,7 @@ namespace BarberShopApp.Core.Models
 
         public int? PercentualDeComissao { get; set; }
         public virtual ICollection<Servico> Especialidades { get; set; } = new List<Servico>();
-        public virtual IEnumerable<Agendamento> Agendamentos { get; set; } = [];
+        public virtual ICollection<Agendamento> Agendamentos { get; set; } = new List<Agendamento>();
 
         public  DateTime DataAniversario
         {

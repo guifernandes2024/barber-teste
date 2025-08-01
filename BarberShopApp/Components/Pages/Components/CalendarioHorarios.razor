@@ -16,7 +16,6 @@
                 <h5>Horários Disponíveis para @DataSelecionada.Value.ToString("dd/MM/yyyy"):</h5>
                 <div class="alert alert-info">
                     <strong>Serviços:</strong> @string.Join(", ", ServicosSelecionados.Select(s => s.Nome))<br />
-                    <strong>Profissional:</strong> Profissional<br />
                     <strong>Duração Total:</strong> @ServicosSelecionados.Sum(s => s.DuracaoEmMinutos) minutos
                     @if (DataSelecionada?.Date == DateTime.Today)
                     {

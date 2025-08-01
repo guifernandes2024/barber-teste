@@ -11,30 +11,102 @@
 
     <main>
         <div class="top-row px-4">
-            <AuthorizeView>
-                <Authorized>
-                    <div class="d-flex align-items-center">
-                        <span class="me-3">Bem-vindo, @UserRoleText!</span>
-                    </div>
-                    <div class="d-flex align-items-center">
-                        <form action="Account/Logout" method="post">
+            <!-- Menu Mobile -->
+            <div class="mobile-menu d-md-none">
+                <button class="btn btn-link text-white" onclick="toggleMobileMenu()">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+            
+            <!-- Logo/Brand Mobile -->
+            <div class="mobile-brand d-md-none">
+                <a class="navbar-brand text-white" href="/admin">
+                    <i class="fas fa-cut me-2"></i>BarberShop
+                </a>
+            </div>
+
+            <!-- Menu Mobile Dropdown -->
+            <div class="mobile-nav" id="mobileNav">
+                <div class="mobile-nav-item">
+                    <a href="/admin" class="mobile-nav-link" onclick="closeMobileMenu()">
+                        <i class="fas fa-home me-2"></i> Dashboard
+                    </a>
+                </div>
+                <div class="mobile-nav-item">
+                    <a href="/admin/agendamentos" class="mobile-nav-link" onclick="closeMobileMenu()">
+                        <i class="fas fa-calendar-check me-2"></i> Agendamentos
+                    </a>
+                </div>
+                <div class="mobile-nav-item">
+                    <a href="/admin/servicos" class="mobile-nav-link" onclick="closeMobileMenu()">
+                        <i class="fas fa-scissors me-2"></i> Serviços
+                    </a>
+                </div>
+                <div class="mobile-nav-item">
+                    <a href="/admin/usuarios" class="mobile-nav-link" onclick="closeMobileMenu()">
+                        <i class="fas fa-users me-2"></i> Usuários
+                    </a>
+                </div>
+                <div class="mobile-nav-item">
+                    <a href="Account/Manage" class="mobile-nav-link" onclick="closeMobileMenu()">
+                        <i class="fas fa-user me-2"></i> Perfil
+                    </a>
+                </div>
+                <div class="mobile-nav-item">
+                    <a href="Account/Register" class="mobile-nav-link" onclick="closeMobileMenu()">
+                        <i class="fas fa-user-plus me-2"></i> Novo Usuário
+                    </a>
+                </div>
+            </div>
+
+            <!-- User Info Desktop -->
+            <div class="desktop-user-info d-none d-md-flex">
+                <AuthorizeView>
+                    <Authorized>
+                        <div class="d-flex align-items-center">
+                            <span class="me-3">Bem-vindo, @UserRoleText!</span>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <form action="Account/Logout" method="post">
+                                <AntiforgeryToken />
+                                <input type="hidden" name="ReturnUrl" value="@currentUrl" />
+                                <button type="submit" class="btn btn-outline-danger btn-sm">
+                                    <i class="fas fa-sign-out-alt me-1"></i>Sair
+                                </button>
+                            </form>
+                        </div>
+                    </Authorized>
+                    <NotAuthorized>
+                        <div class="d-flex align-items-center">
+                            <span class="me-3">Visitante</span>
+                            <a href="Account/Login" class="btn btn-primary btn-sm">
+                                <i class="fas fa-sign-in-alt me-1"></i>Entrar
+                            </a>
+                        </div>
+                    </NotAuthorized>
+                </AuthorizeView>
+            </div>
+
+            <!-- User Info Mobile -->
+            <div class="mobile-user-info d-md-none">
+                <AuthorizeView>
+                    <Authorized>
+                        <span class="me-2">@UserRoleText</span>
+                        <form action="Account/Logout" method="post" class="d-inline">
                             <AntiforgeryToken />
                             <input type="hidden" name="ReturnUrl" value="@currentUrl" />
                             <button type="submit" class="btn btn-outline-danger btn-sm">
-                                <i class="fas fa-sign-out-alt me-1"></i>Sair
+                                <i class="fas fa-sign-out-alt"></i>
                             </button>
                         </form>
-                    </div>
-                </Authorized>
-                <NotAuthorized>
-                    <div class="d-flex align-items-center">
-                        <span class="me-3">Visitante</span>
+                    </Authorized>
+                    <NotAuthorized>
                         <a href="Account/Login" class="btn btn-primary btn-sm">
-                            <i class="fas fa-sign-in-alt me-1"></i>Entrar
+                            <i class="fas fa-sign-in-alt"></i>
                         </a>
-                    </div>
-                </NotAuthorized>
-            </AuthorizeView>
+                    </NotAuthorized>
+                </AuthorizeView>
+            </div>
         </div>
 
         <article class="content px-4">
@@ -42,12 +114,11 @@
         </article>
     </main>
 </div>
+
 @code {
     private string? currentUrl;
-
     private string UserRoleText = "Visitante";
     private bool isDisposed = false;
-
 
     protected override void OnInitialized()
     {
@@ -65,6 +136,7 @@
     {
         NavigationManager.LocationChanged -= OnLocationChanged;
     }
+    
     protected override async Task OnInitializedAsync()
     {
         await UpdateUserRoleText();

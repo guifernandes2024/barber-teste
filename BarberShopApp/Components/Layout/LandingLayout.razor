@@ -7,11 +7,41 @@
                 <i class="fas fa-cut me-2"></i>BarberShop
             </a>
             
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
+            <!-- Menu Mobile -->
+            <div class="mobile-menu d-lg-none">
+                <button class="btn btn-link text-white" onclick="toggleMobileMenu()">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
             
-            <div class="collapse navbar-collapse" id="navbarNav">
+            <!-- Menu Mobile Dropdown -->
+            <div class="mobile-nav" id="mobileNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#servicos" onclick="closeMobileMenu()">Serviços</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#agendamento" onclick="closeMobileMenu()">Agendar</a>
+                    </li>
+                    <li class="nav-item">
+                        <AuthorizeView>
+                            <NotAuthorized>
+                                <a href="Account/Login" class="btn btn-primary btn-sm ms-2">
+                                    <i class="fas fa-sign-in-alt me-1"></i>Login
+                                </a>
+                            </NotAuthorized>
+                            <Authorized>
+                                <a href="/admin" class="btn btn-outline-light btn-sm ms-2">
+                                    <i class="fas fa-tachometer-alt me-1"></i>Painel
+                                </a>
+                            </Authorized>
+                        </AuthorizeView>
+                    </li>
+                </ul>
+            </div>
+            
+            <!-- Desktop Menu -->
+            <div class="collapse navbar-collapse d-none d-lg-block" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
                         <a class="nav-link" href="#servicos">Serviços</a>
