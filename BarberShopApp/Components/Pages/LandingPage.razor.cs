@@ -9,6 +9,7 @@ namespace BarberShopApp.Components.Pages
     public partial class LandingPage
     {
         [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
+        [Inject] private ConfiguracaoBarbeariaService ConfiguracaoService { get; set; } = default!;
         
         private List<Servico> Servicos { get; set; } = new();
         private List<Servico> ServicosSelecionados { get; set; } = new();
@@ -21,6 +22,7 @@ namespace BarberShopApp.Components.Pages
         private bool isLoading { get; set; } = false;
         private string mensagemFeedback { get; set; } = string.Empty;
         private string tipoMensagem { get; set; } = string.Empty;
+        private ConfiguracaoBarbearia? configuracao { get; set; }
 
         // Multi-step properties
         private int CurrentStep { get; set; } = 1;
@@ -44,6 +46,9 @@ namespace BarberShopApp.Components.Pages
                 ServicosSelecionados = new List<Servico>();
                 Profissionais = new List<Profissional>();
                 Agendamento = new Agendamento();
+                
+                // Carregar configurações da barbearia
+                configuracao = await ConfiguracaoService.ObterOuCriarConfiguracaoAsync();
                 
                 // Carregar dados do banco
                 await CarregarServicos();
@@ -249,7 +254,7 @@ namespace BarberShopApp.Components.Pages
                     try
                     {
                         using var context = DbFactory.CreateDbContext();
-                        var horarioService = new HorarioService(DbFactory);
+                        var horarioService = new HorarioService(DbFactory, ConfiguracaoService);
                         
                         // Para cada horário base, verificar se está disponível para o profissional
                         var horariosDisponiveis = new List<DateTime>();

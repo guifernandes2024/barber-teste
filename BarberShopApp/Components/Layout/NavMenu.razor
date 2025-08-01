@@ -1,5 +1,5 @@
 ﻿@inject NavigationManager NavigationManager
-
+ 
 <div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
         <a class="navbar-brand" href="/admin">
@@ -41,6 +41,16 @@
                         <div class="nav-item px-3">
                             <NavLink class="nav-link" href="/admin/usuarios">
                                 <i class="fas fa-users me-2"></i> Usuários
+                            </NavLink>
+                        </div>
+                    </Authorized>
+                </AuthorizeView>
+
+                <AuthorizeView Roles="Admin" Context="adminContext4">
+                    <Authorized>
+                        <div class="nav-item px-3">
+                            <NavLink class="nav-link" href="/admin/configuracao">
+                                <i class="fas fa-cog me-2"></i> Configuração
                             </NavLink>
                         </div>
                     </Authorized>

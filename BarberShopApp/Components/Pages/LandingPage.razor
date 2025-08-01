@@ -398,27 +398,70 @@
     <div class="container">
         <div class="footer-content">
             <div class="footer-section">
-                <h5><i class="fas fa-scissors me-2"></i>Barbearia Profissional</h5>
-                <p>Transforme seu visual com nossos especialistas. Qualidade e profissionalismo em cada corte.</p>
+                <h5><i class="fas fa-scissors me-2"></i>@(configuracao?.NomeBarbearia ?? "Barbearia Profissional")</h5>
+                <p>@(configuracao?.Descricao ?? "Transforme seu visual com nossos especialistas. Qualidade e profissionalismo em cada corte.")</p>
                 <div class="social-links">
-                    <a href="#" title="Facebook"><i class="fab fa-facebook-f"></i></a>
-                    <a href="#" title="Instagram"><i class="fab fa-instagram"></i></a>
-                    <a href="#" title="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+                    @if (!string.IsNullOrEmpty(configuracao?.Facebook))
+                    {
+                        <a href="@configuracao.Facebook" title="Facebook" target="_blank"><i class="fab fa-facebook-f"></i></a>
+                    }
+                    @if (!string.IsNullOrEmpty(configuracao?.Instagram))
+                    {
+                        <a href="@configuracao.Instagram" title="Instagram" target="_blank"><i class="fab fa-instagram"></i></a>
+                    }
+                    @if (!string.IsNullOrEmpty(configuracao?.WhatsApp))
+                    {
+                        <a href="@configuracao.WhatsApp" title="WhatsApp" target="_blank"><i class="fab fa-whatsapp"></i></a>
+                    }
                 </div>
             </div>
             
             <div class="footer-section">
                 <h5><i class="fas fa-map-marker-alt me-2"></i>Localização</h5>
-                <p><i class="fas fa-map-marker-alt me-2"></i>Rua das Barbearias, 123</p>
-                <p><i class="fas fa-phone me-2"></i>(11) 99999-9999</p>
-                <p><i class="fas fa-envelope me-2"></i>contato@barbearia.com</p>
+                <p><i class="fas fa-map-marker-alt me-2"></i>@(configuracao?.Endereco ?? "Rua das Barbearias, 123")</p>
+                <p><i class="fas fa-phone me-2"></i>@(configuracao?.Telefone ?? "(11) 99999-9999")</p>
+                <p><i class="fas fa-envelope me-2"></i>@(configuracao?.Email ?? "contato@barbearia.com")</p>
             </div>
             
             <div class="footer-section">
                 <h5><i class="fas fa-clock me-2"></i>Horário de Funcionamento</h5>
-                <p><strong>Segunda a Sexta:</strong> 08:00 - 18:00</p>
-                <p><strong>Sábado:</strong> 08:00 - 17:00</p>
-                <p><strong>Domingo:</strong> Fechado</p>
+                @if (configuracao != null)
+                {
+                    @if (configuracao.SegundaAberta)
+                    {
+                        <p><strong>Segunda:</strong> @configuracao.ObterHorarioAbertura(DayOfWeek.Monday).ToString(@"hh\:mm") - @configuracao.ObterHorarioFechamento(DayOfWeek.Monday).ToString(@"hh\:mm")</p>
+                    }
+                    @if (configuracao.TercaAberta)
+                    {
+                        <p><strong>Terça:</strong> @configuracao.ObterHorarioAbertura(DayOfWeek.Tuesday).ToString(@"hh\:mm") - @configuracao.ObterHorarioFechamento(DayOfWeek.Tuesday).ToString(@"hh\:mm")</p>
+                    }
+                    @if (configuracao.QuartaAberta)
+                    {
+                        <p><strong>Quarta:</strong> @configuracao.ObterHorarioAbertura(DayOfWeek.Wednesday).ToString(@"hh\:mm") - @configuracao.ObterHorarioFechamento(DayOfWeek.Wednesday).ToString(@"hh\:mm")</p>
+                    }
+                    @if (configuracao.QuintaAberta)
+                    {
+                        <p><strong>Quinta:</strong> @configuracao.ObterHorarioAbertura(DayOfWeek.Thursday).ToString(@"hh\:mm") - @configuracao.ObterHorarioFechamento(DayOfWeek.Thursday).ToString(@"hh\:mm")</p>
+                    }
+                    @if (configuracao.SextaAberta)
+                    {
+                        <p><strong>Sexta:</strong> @configuracao.ObterHorarioAbertura(DayOfWeek.Friday).ToString(@"hh\:mm") - @configuracao.ObterHorarioFechamento(DayOfWeek.Friday).ToString(@"hh\:mm")</p>
+                    }
+                    @if (configuracao.SabadoAberta)
+                    {
+                        <p><strong>Sábado:</strong> @configuracao.ObterHorarioAbertura(DayOfWeek.Saturday).ToString(@"hh\:mm") - @configuracao.ObterHorarioFechamento(DayOfWeek.Saturday).ToString(@"hh\:mm")</p>
+                    }
+                    @if (configuracao.DomingoAberta)
+                    {
+                        <p><strong>Domingo:</strong> @configuracao.ObterHorarioAbertura(DayOfWeek.Sunday).ToString(@"hh\:mm") - @configuracao.ObterHorarioFechamento(DayOfWeek.Sunday).ToString(@"hh\:mm")</p>
+                    }
+                }
+                else
+                {
+                    <p><strong>Segunda a Sexta:</strong> 08:00 - 18:00</p>
+                    <p><strong>Sábado:</strong> 08:00 - 17:00</p>
+                    <p><strong>Domingo:</strong> Fechado</p>
+                }
             </div>
             
             <div class="footer-section">
@@ -431,7 +474,7 @@
         </div>
         
         <div class="footer-bottom">
-            <p>&copy;@DateTime.Now.Year.ToString() Barbearia Profissional. Todos os direitos reservados.</p>
+            <p>&copy;@DateTime.Now.Year.ToString() @(configuracao?.NomeBarbearia ?? "Barbearia Profissional"). Todos os direitos reservados.</p>
             <p><a href="/admin" class="text-light">Área Administrativa</a></p>
         </div>
     </div>

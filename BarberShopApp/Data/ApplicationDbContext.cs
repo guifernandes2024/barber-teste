@@ -12,6 +12,8 @@ namespace BarberShopApp.Data
         public DbSet<Profissional> Profissional { get; set; }
         public DbSet<Servico> Servico { get; set; }
         public DbSet<Cliente> Cliente { get; set; }
+        public DbSet<ConfiguracaoBarbearia> ConfiguracaoBarbearia { get; set; }
+        
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

@@ -6,21 +6,22 @@ namespace BarberShopApp.Core.Services
     public class HorarioService
     {
         private readonly IDbContextFactory<ApplicationDbContext> _dbContextFactory;
+        private readonly ConfiguracaoBarbeariaService _configuracaoService;
 
-        public HorarioService(IDbContextFactory<ApplicationDbContext> dbContextFactory)
+        public HorarioService(IDbContextFactory<ApplicationDbContext> dbContextFactory, ConfiguracaoBarbeariaService configuracaoService)
         {
             _dbContextFactory = dbContextFactory;
+            _configuracaoService = configuracaoService;
         }
-
-        // Horário de funcionamento da barbearia (aplicado a todos os profissionais)
-        private readonly TimeSpan _horaInicio = new TimeSpan(8, 0, 0); // 08:00
-        private readonly TimeSpan _horaFim = new TimeSpan(18, 0, 0);   // 18:00
-        private readonly int _intervaloMinutos = 30; // Intervalo entre horários
 
         // Método legado - mantido para compatibilidade
         public async Task<List<DateTime>> GetHorariosDisponiveisAsync(DateTime data, int servicoId)
         {
             using var context = _dbContextFactory.CreateDbContext();
+
+            // Verificar se a barbearia está aberta neste dia
+            if (!await _configuracaoService.EstaAbertaAsync(data))
+                return new List<DateTime>();
 
             // Buscar o serviço para obter a duração
             var servico = await context.Servico.FindAsync(servicoId);
@@ -35,11 +36,17 @@ namespace BarberShopApp.Core.Services
                 .Where(a => a.DataHora.Date == data.Date)
                 .ToListAsync();
 
+            // Obter horários de funcionamento da configuração
+            var horarioAbertura = await _configuracaoService.ObterHorarioAberturaAsync(data);
+            var horarioFechamento = await _configuracaoService.ObterHorarioFechamentoAsync(data);
+            var configuracao = await _configuracaoService.ObterConfiguracaoAsync();
+            var intervalo = configuracao?.IntervaloAgendamentoMinutos ?? 30;
+
             // Gerar todos os horários possíveis
             var horariosDisponiveis = new List<DateTime>();
-            var horaAtual = _horaInicio;
+            var horaAtual = horarioAbertura;
 
-            while (horaAtual.Add(TimeSpan.FromMinutes(duracaoServico)) <= _horaFim)
+            while (horaAtual.Add(TimeSpan.FromMinutes(duracaoServico)) <= horarioFechamento)
             {
                 var horarioProposto = data.Date.Add(horaAtual);
                 var horarioFim = horarioProposto.AddMinutes(duracaoServico);
@@ -54,7 +61,7 @@ namespace BarberShopApp.Core.Services
                     horariosDisponiveis.Add(horarioProposto);
                 }
 
-                horaAtual = horaAtual.Add(TimeSpan.FromMinutes(_intervaloMinutos));
+                horaAtual = horaAtual.Add(TimeSpan.FromMinutes(intervalo));
             }
 
             return horariosDisponiveis;
@@ -65,15 +72,29 @@ namespace BarberShopApp.Core.Services
         {
             using var context = _dbContextFactory.CreateDbContext();
 
+            // Verificar se a barbearia está aberta neste dia
+            if (!await _configuracaoService.EstaAbertaAsync(data))
+                return new List<DateTime>();
+
+            // Verificar se pode agendar nesta data
+            if (!await _configuracaoService.PodeAgendarAsync(data))
+                return new List<DateTime>();
+
             // Buscar agendamentos existentes para a data e profissional específico
             var agendamentosDoDia = await context.Agendamento
                 .Include(a => a.Servicos)
                 .Where(a => a.DataHora.Date == data.Date && a.ProfissionalId == profissionalId)
                 .ToListAsync();
 
+            // Obter horários de funcionamento da configuração
+            var horarioAbertura = await _configuracaoService.ObterHorarioAberturaAsync(data);
+            var horarioFechamento = await _configuracaoService.ObterHorarioFechamentoAsync(data);
+            var configuracao = await _configuracaoService.ObterConfiguracaoAsync();
+            var intervalo = configuracao?.IntervaloAgendamentoMinutos ?? 30;
+
             // Gerar todos os horários possíveis
             var horariosDisponiveis = new List<DateTime>();
-            var horaAtual = _horaInicio;
+            var horaAtual = horarioAbertura;
 
             // Se for hoje, começar a partir da hora atual (com margem de 30 minutos)
             if (data.Date == DateTime.Today)
@@ -81,15 +102,15 @@ namespace BarberShopApp.Core.Services
                 var horaAgora = DateTime.Now.TimeOfDay;
                 var horaMinima = horaAgora.Add(TimeSpan.FromMinutes(30)); // Margem de 30 minutos
                 
-                if (horaMinima > _horaFim)
+                if (horaMinima > horarioFechamento)
                 {
                     return horariosDisponiveis; // Não há horários disponíveis hoje
                 }
                 
-                horaAtual = horaMinima > _horaInicio ? horaMinima : _horaInicio;
+                horaAtual = horaMinima > horarioAbertura ? horaMinima : horarioAbertura;
             }
 
-            while (horaAtual.Add(TimeSpan.FromMinutes(duracaoTotal)) <= _horaFim)
+            while (horaAtual.Add(TimeSpan.FromMinutes(duracaoTotal)) <= horarioFechamento)
             {
                 var horarioProposto = data.Date.Add(horaAtual);
                 var horarioFim = horarioProposto.AddMinutes(duracaoTotal);
@@ -104,7 +125,7 @@ namespace BarberShopApp.Core.Services
                     horariosDisponiveis.Add(horarioProposto);
                 }
 
-                horaAtual = horaAtual.Add(TimeSpan.FromMinutes(_intervaloMinutos));
+                horaAtual = horaAtual.Add(TimeSpan.FromMinutes(intervalo));
             }
 
             return horariosDisponiveis;
@@ -130,6 +151,10 @@ namespace BarberShopApp.Core.Services
         {
             using var context = _dbContextFactory.CreateDbContext();
 
+            // Verificar se a barbearia está aberta neste dia
+            if (!await _configuracaoService.EstaAbertaAsync(dataHora))
+                return false;
+
             var servico = await context.Servico.FindAsync(servicoId);
             if (servico == null)
                 return false;
@@ -137,8 +162,12 @@ namespace BarberShopApp.Core.Services
             var duracaoServico = servico.DuracaoEmMinutos;
             var horarioFim = dataHora.AddMinutes(duracaoServico);
 
+            // Obter horários de funcionamento da configuração
+            var horarioAbertura = await _configuracaoService.ObterHorarioAberturaAsync(dataHora);
+            var horarioFechamento = await _configuracaoService.ObterHorarioFechamentoAsync(dataHora);
+
             // Verificar se está dentro do horário de funcionamento
-            if (dataHora.TimeOfDay < _horaInicio || horarioFim.TimeOfDay > _horaFim)
+            if (dataHora.TimeOfDay < horarioAbertura || horarioFim.TimeOfDay > horarioFechamento)
                 return false;
 
             // Verificar se há conflito com agendamentos existentes (todos os profissionais)
@@ -157,10 +186,22 @@ namespace BarberShopApp.Core.Services
         {
             using var context = _dbContextFactory.CreateDbContext();
 
+            // Verificar se a barbearia está aberta neste dia
+            if (!await _configuracaoService.EstaAbertaAsync(dataHora))
+                return false;
+
+            // Verificar se pode agendar nesta data
+            if (!await _configuracaoService.PodeAgendarAsync(dataHora))
+                return false;
+
             var horarioFim = dataHora.AddMinutes(duracaoTotal);
 
+            // Obter horários de funcionamento da configuração
+            var horarioAbertura = await _configuracaoService.ObterHorarioAberturaAsync(dataHora);
+            var horarioFechamento = await _configuracaoService.ObterHorarioFechamentoAsync(dataHora);
+
             // Verificar se está dentro do horário de funcionamento
-            if (dataHora.TimeOfDay < _horaInicio || horarioFim.TimeOfDay > _horaFim)
+            if (dataHora.TimeOfDay < horarioAbertura || horarioFim.TimeOfDay > horarioFechamento)
                 return false;
 
             // Se for hoje, verificar se o horário não é no passado
@@ -182,8 +223,18 @@ namespace BarberShopApp.Core.Services
             return !agendamentosConflitantes;
         }
 
-        public TimeSpan GetHoraInicio() => _horaInicio;
-        public TimeSpan GetHoraFim() => _horaFim;
-        public int GetIntervaloMinutos() => _intervaloMinutos;
+        // Métodos para obter informações de configuração
+        public async Task<TimeSpan> GetHoraInicioAsync(DateTime data) => await _configuracaoService.ObterHorarioAberturaAsync(data);
+        public async Task<TimeSpan> GetHoraFimAsync(DateTime data) => await _configuracaoService.ObterHorarioFechamentoAsync(data);
+        public async Task<int> GetIntervaloMinutosAsync()
+        {
+            var config = await _configuracaoService.ObterConfiguracaoAsync();
+            return config?.IntervaloAgendamentoMinutos ?? 30;
+        }
+
+        // Métodos legados para compatibilidade
+        public TimeSpan GetHoraInicio() => new TimeSpan(8, 0, 0);
+        public TimeSpan GetHoraFim() => new TimeSpan(18, 0, 0);
+        public int GetIntervaloMinutos() => 30;
     }
 } 

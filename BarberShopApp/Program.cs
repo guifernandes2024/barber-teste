@@ -13,7 +13,7 @@ using BarberShopApp.Data.DataServices;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Adicionar servi�os ao cont�iner.
+// Adicionar serviços ao contêiner.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents()
     .AddInteractiveWebAssemblyComponents();
@@ -37,6 +37,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlite("Data Source=meu_banco.db"));
 
 builder.Services.AddScoped<HorarioService>();
+builder.Services.AddScoped<ConfiguracaoBarbeariaService>();
 
 builder.Services.AddQuickGridEntityFrameworkAdapter();
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
@@ -75,7 +76,7 @@ using (var scope = app.Services.CreateScope())
         logger.LogError(ex, "An error occurred while seeding the database with roles.");
     }
 }
-// Configurar o pipeline de requisi��es HTTP.
+// Configurar o pipeline de requisições HTTP.
 if (app.Environment.IsDevelopment())
 {
     app.UseWebAssemblyDebugging();
@@ -84,7 +85,6 @@ if (app.Environment.IsDevelopment())
 else
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
-    // O valor HSTS padr�o � 30 dias. Voc� pode querer mudar isso para cen�rios de produ��o, veja https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
     app.UseMigrationsEndPoint();
 }

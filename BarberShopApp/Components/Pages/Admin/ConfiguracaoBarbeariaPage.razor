@@ -1,0 +1,451 @@
+@page "/admin/configuracao"
+@using BarberShopApp.Core.Models
+@using BarberShopApp.Core.Services
+@using Microsoft.AspNetCore.Authorization
+@inject ConfiguracaoBarbeariaService ConfiguracaoService
+@inject IJSRuntime JSRuntime
+@attribute [Authorize(Roles = "Admin")]
+
+@rendermode InteractiveServer
+<PageTitle>Configuração da Barbearia</PageTitle>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-cog me-2"></i>Configuração da Barbearia
+                    </h3>
+                </div>
+                <div class="card-body">
+                    @if (configuracao != null)
+                    {
+                        <EditForm Model="configuracao" OnValidSubmit="SalvarConfiguracao">
+                            <DataAnnotationsValidator />
+                            <ValidationSummary />
+
+                            <div class="row">
+                                <!-- Informações Básicas -->
+                                <div class="col-md-6">
+                                    <h4 class="mb-3">Informações Básicas</h4>
+                                    
+                                    <div class="mb-3">
+                                        <label for="nomeBarbearia" class="form-label">Nome da Barbearia *</label>
+                                        <InputText id="nomeBarbearia" class="form-control" @bind-Value="configuracao.NomeBarbearia" />
+                                        <ValidationMessage For="@(() => configuracao.NomeBarbearia)" />
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="descricao" class="form-label">Descrição *</label>
+                                        <InputTextArea id="descricao" class="form-control" rows="3" @bind-Value="configuracao.Descricao" />
+                                        <ValidationMessage For="@(() => configuracao.Descricao)" />
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="endereco" class="form-label">Endereço *</label>
+                                        <InputText id="endereco" class="form-control" @bind-Value="configuracao.Endereco" />
+                                        <ValidationMessage For="@(() => configuracao.Endereco)" />
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="telefone" class="form-label">Telefone *</label>
+                                        <InputText id="telefone" class="form-control" @bind-Value="configuracao.Telefone" />
+                                        <ValidationMessage For="@(() => configuracao.Telefone)" />
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="email" class="form-label">Email *</label>
+                                        <InputText id="email" type="email" class="form-control" @bind-Value="configuracao.Email" />
+                                        <ValidationMessage For="@(() => configuracao.Email)" />
+                                    </div>
+                                </div>
+
+                                <!-- Redes Sociais -->
+                                <div class="col-md-6">
+                                    <h4 class="mb-3">Redes Sociais</h4>
+                                    
+                                    <div class="mb-3">
+                                        <label for="site" class="form-label">Site</label>
+                                        <InputText id="site" class="form-control" @bind-Value="configuracao.Site" />
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="instagram" class="form-label">Instagram</label>
+                                        <InputText id="instagram" class="form-control" @bind-Value="configuracao.Instagram" />
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="facebook" class="form-label">Facebook</label>
+                                        <InputText id="facebook" class="form-control" @bind-Value="configuracao.Facebook" />
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="whatsapp" class="form-label">WhatsApp</label>
+                                        <InputText id="whatsapp" class="form-control" @bind-Value="configuracao.WhatsApp" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <hr />
+
+                            <!-- Horários de Funcionamento -->
+                            <div class="row">
+                                <div class="col-12">
+                                    <h4 class="mb-3">Horários de Funcionamento</h4>
+                                    
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="horarioAbertura" class="form-label">Horário de Abertura *</label>
+                                                <InputText id="horarioAbertura" class="form-control" 
+                                                         @bind-Value="horarioAberturaString" 
+                                                         @onchange="OnHorarioAberturaChanged"
+                                                         placeholder="08:00" 
+                                                         maxlength="5" />
+                                                <small class="form-text text-muted">Formato: HH:MM (ex: 08:00, 14:30)</small>
+                                                @if (!string.IsNullOrEmpty(horarioAberturaError))
+                                                {
+                                                    <div class="text-danger small">@horarioAberturaError</div>
+                                                }
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="horarioFechamento" class="form-label">Horário de Fechamento *</label>
+                                                <InputText id="horarioFechamento" class="form-control" 
+                                                         @bind-Value="horarioFechamentoString" 
+                                                         @onchange="OnHorarioFechamentoChanged"
+                                                         placeholder="18:00" 
+                                                         maxlength="5" />
+                                                <small class="form-text text-muted">Formato: HH:MM (ex: 18:00, 22:30)</small>
+                                                @if (!string.IsNullOrEmpty(horarioFechamentoError))
+                                                {
+                                                    <div class="text-danger small">@horarioFechamentoError</div>
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <h5 class="mb-3">Dias de Funcionamento</h5>
+                                            <div class="row">
+                                                <div class="col-md-3 mb-2">
+                                                    <div class="form-check">
+                                                        <InputCheckbox id="segunda" class="form-check-input" @bind-Value="configuracao.SegundaAberta" />
+                                                        <label class="form-check-label" for="segunda">Segunda-feira</label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-3 mb-2">
+                                                    <div class="form-check">
+                                                        <InputCheckbox id="terca" class="form-check-input" @bind-Value="configuracao.TercaAberta" />
+                                                        <label class="form-check-label" for="terca">Terça-feira</label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-3 mb-2">
+                                                    <div class="form-check">
+                                                        <InputCheckbox id="quarta" class="form-check-input" @bind-Value="configuracao.QuartaAberta" />
+                                                        <label class="form-check-label" for="quarta">Quarta-feira</label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-3 mb-2">
+                                                    <div class="form-check">
+                                                        <InputCheckbox id="quinta" class="form-check-input" @bind-Value="configuracao.QuintaAberta" />
+                                                        <label class="form-check-label" for="quinta">Quinta-feira</label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-3 mb-2">
+                                                    <div class="form-check">
+                                                        <InputCheckbox id="sexta" class="form-check-input" @bind-Value="configuracao.SextaAberta" />
+                                                        <label class="form-check-label" for="sexta">Sexta-feira</label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-3 mb-2">
+                                                    <div class="form-check">
+                                                        <InputCheckbox id="sabado" class="form-check-input" @bind-Value="configuracao.SabadoAberta" />
+                                                        <label class="form-check-label" for="sabado">Sábado</label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-3 mb-2">
+                                                    <div class="form-check">
+                                                        <InputCheckbox id="domingo" class="form-check-input" @bind-Value="configuracao.DomingoAberta" />
+                                                        <label class="form-check-label" for="domingo">Domingo</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <hr />
+
+                            <!-- Configurações de Agendamento -->
+                            <div class="row">
+                                <div class="col-12">
+                                    <h4 class="mb-3">Configurações de Agendamento</h4>
+                                    
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <div class="mb-3">
+                                                <label for="intervalo" class="form-label">Intervalo entre Agendamentos (minutos) *</label>
+                                                <InputNumber id="intervalo" class="form-control" @bind-Value="configuracao.IntervaloAgendamentoMinutos" />
+                                                <ValidationMessage For="@(() => configuracao.IntervaloAgendamentoMinutos)" />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="mb-3">
+                                                <label for="prazoMinimo" class="form-label">Prazo Mínimo (dias) *</label>
+                                                <InputNumber id="prazoMinimo" class="form-control" @bind-Value="configuracao.PrazoMinimoAgendamentoDias" />
+                                                <ValidationMessage For="@(() => configuracao.PrazoMinimoAgendamentoDias)" />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="mb-3">
+                                                <label for="prazoMaximo" class="form-label">Prazo Máximo (dias) *</label>
+                                                <InputNumber id="prazoMaximo" class="form-control" @bind-Value="configuracao.PrazoMaximoAgendamentoDias" />
+                                                <ValidationMessage For="@(() => configuracao.PrazoMaximoAgendamentoDias)" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <hr />
+
+                            <!-- Informações Adicionais -->
+                            <div class="row">
+                                <div class="col-12">
+                                    <h4 class="mb-3">Informações Adicionais</h4>
+                                    
+                                    <div class="mb-3">
+                                        <label for="politicas" class="form-label">Políticas de Cancelamento</label>
+                                        <InputTextArea id="politicas" class="form-control" rows="3" @bind-Value="configuracao.PoliticasCancelamento" />
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="observacoes" class="form-label">Observações</label>
+                                        <InputTextArea id="observacoes" class="form-control" rows="3" @bind-Value="configuracao.Observacoes" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row mt-4">
+                                <div class="col-12">
+                                    <button type="submit" class="btn btn-primary" disabled="@isSalvando">
+                                        @if (isSalvando)
+                                        {
+                                            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                            <span>Salvando...</span>
+                                        }
+                                        else
+                                        {
+                                            <i class="fas fa-save me-2"></i>
+											<p>Salvar Configuração</p>
+                                        }
+                                    </button>
+                                    <a href="/admin" class="btn btn-secondary ms-2">
+                                        <i class="fas fa-arrow-left me-2"></i>Voltar
+                                    </a>
+                                </div>
+                            </div>
+                        </EditForm>
+                    }
+                    else
+                    {
+                        <div class="text-center">
+                            <div class="spinner-border" role="status">
+                                <span class="visually-hidden">Carregando...</span>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private ConfiguracaoBarbearia? configuracao;
+    private bool isSalvando = false;
+    private string horarioAberturaString = "";
+    private string horarioFechamentoString = "";
+    private string horarioAberturaError = "";
+    private string horarioFechamentoError = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        configuracao = await ConfiguracaoService.ObterOuCriarConfiguracaoAsync();
+        if (configuracao != null)
+        {
+            horarioAberturaString = configuracao.HorarioAbertura.ToString(@"hh\:mm");
+            horarioFechamentoString = configuracao.HorarioFechamento.ToString(@"hh\:mm");
+        }
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (configuracao != null)
+        {
+            if (TimeSpan.TryParse(horarioAberturaString, out var abertura))
+            {
+                configuracao.HorarioAbertura = abertura;
+            }
+            if (TimeSpan.TryParse(horarioFechamentoString, out var fechamento))
+            {
+                configuracao.HorarioFechamento = fechamento;
+            }
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        // Removido o JavaScript da máscara - focando apenas na validação no servidor
+    }
+
+    private async Task SalvarConfiguracao()
+    {
+        if (configuracao == null) return;
+
+        // Validar horários antes de salvar
+        if (!TimeSpan.TryParse(horarioAberturaString, out var horarioAbertura))
+        {
+            horarioAberturaError = "Horário de abertura inválido. Use formato HH:MM.";
+            StateHasChanged();
+            return;
+        }
+
+        if (!TimeSpan.TryParse(horarioFechamentoString, out var horarioFechamento))
+        {
+            horarioFechamentoError = "Horário de fechamento inválido. Use formato HH:MM.";
+            StateHasChanged();
+            return;
+        }
+
+        // Validar se o horário de fechamento é maior que o de abertura
+        if (horarioFechamento <= horarioAbertura)
+        {
+            horarioFechamentoError = "O horário de fechamento deve ser maior que o de abertura.";
+            StateHasChanged();
+            return;
+        }
+
+        // Atualizar os horários no objeto de configuração
+        configuracao.HorarioAbertura = horarioAbertura;
+        configuracao.HorarioFechamento = horarioFechamento;
+
+        isSalvando = true;
+        StateHasChanged();
+
+        try
+        {
+            var sucesso = await ConfiguracaoService.SalvarConfiguracaoAsync(configuracao);
+            
+            if (sucesso)
+            {
+                await JSRuntime.InvokeVoidAsync("alert", "Configuração salva com sucesso!");
+                // Limpar erros após salvar com sucesso
+                horarioAberturaError = "";
+                horarioFechamentoError = "";
+            }
+            else
+            {
+                await JSRuntime.InvokeVoidAsync("alert", "Erro ao salvar configuração. Tente novamente.");
+            }
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("alert", $"Erro: {ex.Message}");
+        }
+        finally
+        {
+            isSalvando = false;
+            StateHasChanged();
+        }
+    }
+
+    private void OnHorarioAberturaChanged(ChangeEventArgs e)
+    {
+        horarioAberturaString = e.Value?.ToString() ?? "";
+        horarioAberturaError = "";
+        
+        // Validar formato
+        if (!string.IsNullOrEmpty(horarioAberturaString))
+        {
+            // Validar formato HH:MM
+            if (!System.Text.RegularExpressions.Regex.IsMatch(horarioAberturaString, @"^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$"))
+            {
+                horarioAberturaError = "Formato inválido. Use HH:MM (ex: 08:00, 14:30).";
+                return;
+            }
+            
+            if (!TimeSpan.TryParse(horarioAberturaString, out var horario))
+            {
+                horarioAberturaError = "Horário inválido. Use formato HH:MM.";
+                return;
+            }
+            
+            // Validar limites (0-23 horas, 0-59 minutos)
+            if (horario.Hours < 0 || horario.Hours > 23)
+            {
+                horarioAberturaError = "Hora deve estar entre 00 e 23.";
+                return;
+            }
+            
+            if (horario.Minutes < 0 || horario.Minutes > 59)
+            {
+                horarioAberturaError = "Minutos devem estar entre 00 e 59.";
+                return;
+            }
+            
+            // Atualizar o objeto de configuração
+            if (configuracao != null)
+            {
+                configuracao.HorarioAbertura = horario;
+            }
+        }
+    }
+
+    private void OnHorarioFechamentoChanged(ChangeEventArgs e)
+    {
+        horarioFechamentoString = e.Value?.ToString() ?? "";
+        horarioFechamentoError = "";
+        
+        // Validar formato
+        if (!string.IsNullOrEmpty(horarioFechamentoString))
+        {
+            // Validar formato HH:MM
+            if (!System.Text.RegularExpressions.Regex.IsMatch(horarioFechamentoString, @"^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$"))
+            {
+                horarioFechamentoError = "Formato inválido. Use HH:MM (ex: 18:00, 22:30).";
+                return;
+            }
+            
+            if (!TimeSpan.TryParse(horarioFechamentoString, out var horario))
+            {
+                horarioFechamentoError = "Horário inválido. Use formato HH:MM.";
+                return;
+            }
+            
+            // Validar limites (0-23 horas, 0-59 minutos)
+            if (horario.Hours < 0 || horario.Hours > 23)
+            {
+                horarioFechamentoError = "Hora deve estar entre 00 e 23.";
+                return;
+            }
+            
+            if (horario.Minutes < 0 || horario.Minutes > 59)
+            {
+                horarioFechamentoError = "Minutos devem estar entre 00 e 59.";
+                return;
+            }
+            
+            // Atualizar o objeto de configuração
+            if (configuracao != null)
+            {
+                configuracao.HorarioFechamento = horario;
+            }
+        }
+    }
+} 
