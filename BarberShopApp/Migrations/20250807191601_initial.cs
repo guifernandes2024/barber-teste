@@ -26,20 +26,68 @@ namespace BarberShopApp.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "ConfiguracaoBarbearia",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    NomeBarbearia = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
+                    Descricao = table.Column<string>(type: "TEXT", maxLength: 500, nullable: false),
+                    Endereco = table.Column<string>(type: "TEXT", maxLength: 200, nullable: false),
+                    Telefone = table.Column<string>(type: "TEXT", maxLength: 20, nullable: false),
+                    Email = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
+                    Site = table.Column<string>(type: "TEXT", maxLength: 200, nullable: true),
+                    Instagram = table.Column<string>(type: "TEXT", maxLength: 200, nullable: true),
+                    Facebook = table.Column<string>(type: "TEXT", maxLength: 200, nullable: true),
+                    WhatsApp = table.Column<string>(type: "TEXT", maxLength: 200, nullable: true),
+                    HorarioAbertura = table.Column<TimeSpan>(type: "TEXT", nullable: false),
+                    HorarioFechamento = table.Column<TimeSpan>(type: "TEXT", nullable: false),
+                    SegundaAberta = table.Column<bool>(type: "INTEGER", nullable: false),
+                    TercaAberta = table.Column<bool>(type: "INTEGER", nullable: false),
+                    QuartaAberta = table.Column<bool>(type: "INTEGER", nullable: false),
+                    QuintaAberta = table.Column<bool>(type: "INTEGER", nullable: false),
+                    SextaAberta = table.Column<bool>(type: "INTEGER", nullable: false),
+                    SabadoAberta = table.Column<bool>(type: "INTEGER", nullable: false),
+                    DomingoAberta = table.Column<bool>(type: "INTEGER", nullable: false),
+                    SegundaAbertura = table.Column<TimeSpan>(type: "TEXT", nullable: true),
+                    SegundaFechamento = table.Column<TimeSpan>(type: "TEXT", nullable: true),
+                    TercaAbertura = table.Column<TimeSpan>(type: "TEXT", nullable: true),
+                    TercaFechamento = table.Column<TimeSpan>(type: "TEXT", nullable: true),
+                    QuartaAbertura = table.Column<TimeSpan>(type: "TEXT", nullable: true),
+                    QuartaFechamento = table.Column<TimeSpan>(type: "TEXT", nullable: true),
+                    QuintaAbertura = table.Column<TimeSpan>(type: "TEXT", nullable: true),
+                    QuintaFechamento = table.Column<TimeSpan>(type: "TEXT", nullable: true),
+                    SextaAbertura = table.Column<TimeSpan>(type: "TEXT", nullable: true),
+                    SextaFechamento = table.Column<TimeSpan>(type: "TEXT", nullable: true),
+                    SabadoAbertura = table.Column<TimeSpan>(type: "TEXT", nullable: true),
+                    SabadoFechamento = table.Column<TimeSpan>(type: "TEXT", nullable: true),
+                    DomingoAbertura = table.Column<TimeSpan>(type: "TEXT", nullable: true),
+                    DomingoFechamento = table.Column<TimeSpan>(type: "TEXT", nullable: true),
+                    IntervaloAgendamentoMinutos = table.Column<int>(type: "INTEGER", nullable: false),
+                    PrazoMinimoAgendamentoDias = table.Column<int>(type: "INTEGER", nullable: false),
+                    PrazoMaximoAgendamentoDias = table.Column<int>(type: "INTEGER", nullable: false),
+                    PoliticasCancelamento = table.Column<string>(type: "TEXT", maxLength: 500, nullable: true),
+                    Observacoes = table.Column<string>(type: "TEXT", maxLength: 500, nullable: true),
+                    DataCriacao = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    DataAtualizacao = table.Column<DateTime>(type: "TEXT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ConfiguracaoBarbearia", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Profissionais",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    Nome = table.Column<string>(type: "TEXT", nullable: false),
-                    Email = table.Column<string>(type: "TEXT", maxLength: 255, nullable: false),
-                    Telefone = table.Column<string>(type: "TEXT", maxLength: 20, nullable: false),
                     TipoDocumento = table.Column<string>(type: "TEXT", nullable: false),
                     Documento = table.Column<string>(type: "TEXT", maxLength: 50, nullable: false),
                     DataNacimento = table.Column<DateTime>(type: "TEXT", nullable: false),
                     Fumante = table.Column<bool>(type: "INTEGER", nullable: false),
                     ImgUrl = table.Column<string>(type: "TEXT", maxLength: 500, nullable: false),
-                    PercentualDeComissao = table.Column<int>(type: "INTEGER", nullable: true),
+                    PercentualDeComissao = table.Column<decimal>(type: "TEXT", nullable: false),
                     DataCriacao = table.Column<DateTime>(type: "TEXT", nullable: false),
                     DataAtualizacao = table.Column<DateTime>(type: "TEXT", nullable: false)
                 },
@@ -89,37 +137,13 @@ namespace BarberShopApp.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Agendamentos",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    DataHora = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    NomeDoCliente = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
-                    NumeroDoCliente = table.Column<string>(type: "TEXT", maxLength: 20, nullable: false),
-                    ProfissionalId = table.Column<int>(type: "INTEGER", nullable: false),
-                    Observacoes = table.Column<string>(type: "TEXT", maxLength: 500, nullable: false),
-                    DataCriacao = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    DataAtualizacao = table.Column<DateTime>(type: "TEXT", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Agendamentos", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Agendamentos_Profissionais_ProfissionalId",
-                        column: x => x.ProfissionalId,
-                        principalTable: "Profissionais",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "AspNetUsers",
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "TEXT", nullable: false),
                     Nome = table.Column<string>(type: "TEXT", nullable: false),
                     ProfissionalId = table.Column<int>(type: "INTEGER", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: true),
                     PhoneNumber = table.Column<string>(type: "TEXT", nullable: true),
                     UserName = table.Column<string>(type: "TEXT", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "TEXT", maxLength: 256, nullable: true),
@@ -164,30 +188,6 @@ namespace BarberShopApp.Migrations
                     table.ForeignKey(
                         name: "FK_ProfissionalEspecialidades_Servicos_EspecialidadesId",
                         column: x => x.EspecialidadesId,
-                        principalTable: "Servicos",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "AgendamentoServicos",
-                columns: table => new
-                {
-                    AgendamentosId = table.Column<int>(type: "INTEGER", nullable: false),
-                    ServicosId = table.Column<int>(type: "INTEGER", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_AgendamentoServicos", x => new { x.AgendamentosId, x.ServicosId });
-                    table.ForeignKey(
-                        name: "FK_AgendamentoServicos_Agendamentos_AgendamentosId",
-                        column: x => x.AgendamentosId,
-                        principalTable: "Agendamentos",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_AgendamentoServicos_Servicos_ServicosId",
-                        column: x => x.ServicosId,
                         principalTable: "Servicos",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -283,8 +283,8 @@ namespace BarberShopApp.Migrations
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "TEXT", nullable: false),
-                    Nome = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
-                    Telefone = table.Column<string>(type: "TEXT", maxLength: 20, nullable: false)
+                    Telefone = table.Column<string>(type: "TEXT", maxLength: 20, nullable: false),
+                    DataNascimento = table.Column<DateTime>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -296,6 +296,66 @@ namespace BarberShopApp.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
+
+            migrationBuilder.CreateTable(
+                name: "Agendamentos",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    DataHora = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    NomeDoCliente = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
+                    NumeroDoCliente = table.Column<string>(type: "TEXT", maxLength: 20, nullable: false),
+                    ProfissionalId = table.Column<int>(type: "INTEGER", nullable: false),
+                    ClienteId = table.Column<string>(type: "TEXT", maxLength: 450, nullable: true),
+                    Observacoes = table.Column<string>(type: "TEXT", maxLength: 500, nullable: false),
+                    DataCriacao = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    DataAtualizacao = table.Column<DateTime>(type: "TEXT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Agendamentos", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Agendamentos_Clientes_ClienteId",
+                        column: x => x.ClienteId,
+                        principalTable: "Clientes",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Agendamentos_Profissionais_ProfissionalId",
+                        column: x => x.ProfissionalId,
+                        principalTable: "Profissionais",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AgendamentoServicos",
+                columns: table => new
+                {
+                    AgendamentosId = table.Column<int>(type: "INTEGER", nullable: false),
+                    ServicosId = table.Column<int>(type: "INTEGER", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AgendamentoServicos", x => new { x.AgendamentosId, x.ServicosId });
+                    table.ForeignKey(
+                        name: "FK_AgendamentoServicos_Agendamentos_AgendamentosId",
+                        column: x => x.AgendamentosId,
+                        principalTable: "Agendamentos",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_AgendamentoServicos_Servicos_ServicosId",
+                        column: x => x.ServicosId,
+                        principalTable: "Servicos",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Agendamentos_ClienteId",
+                table: "Agendamentos",
+                column: "ClienteId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Agendamentos_ProfissionalId",
@@ -350,12 +410,6 @@ namespace BarberShopApp.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_Profissionais_Email",
-                table: "Profissionais",
-                column: "Email",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
                 name: "IX_ProfissionalEspecialidades_ProfissionalsId",
                 table: "ProfissionalEspecialidades",
                 column: "ProfissionalsId");
@@ -383,7 +437,7 @@ namespace BarberShopApp.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
-                name: "Clientes");
+                name: "ConfiguracaoBarbearia");
 
             migrationBuilder.DropTable(
                 name: "ProfissionalEspecialidades");
@@ -395,10 +449,13 @@ namespace BarberShopApp.Migrations
                 name: "AspNetRoles");
 
             migrationBuilder.DropTable(
-                name: "AspNetUsers");
+                name: "Servicos");
 
             migrationBuilder.DropTable(
-                name: "Servicos");
+                name: "Clientes");
+
+            migrationBuilder.DropTable(
+                name: "AspNetUsers");
 
             migrationBuilder.DropTable(
                 name: "Profissionais");

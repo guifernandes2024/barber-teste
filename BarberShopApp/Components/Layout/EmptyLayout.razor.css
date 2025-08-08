@@ -1,6 +1,9 @@
 
 .landing-layout {
     min-height: 100vh;
-    background-color: #1a1a1a;
     color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
 }

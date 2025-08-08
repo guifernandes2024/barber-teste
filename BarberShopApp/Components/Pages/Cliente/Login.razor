@@ -1,36 +1,46 @@
-﻿@page "/Account/Login"
+@page "/cliente/login"
 
 @layout Layout.EmptyLayout
-@using System.ComponentModel.DataAnnotations
 @using Microsoft.AspNetCore.Authentication
 @using Microsoft.AspNetCore.Identity
 @using BarberShopApp.Data
+@using BarberShopApp.Components.Account
+@using System.ComponentModel.DataAnnotations
 @using System.Security.Claims
+@using Microsoft.AspNetCore.WebUtilities
 
 @inject SignInManager<ApplicationUser> SignInManager
-@inject UserManager<ApplicationUser> UserManager;
+@inject UserManager<ApplicationUser> UserManager
+@inject NavigationManager Navigation
 @inject ILogger<Login> Logger
-@inject NavigationManager NavigationManager
 @inject IdentityRedirectManager RedirectManager
 
-<PageTitle>Login - Área Administrativa</PageTitle>
+<PageTitle>Login - Cliente</PageTitle>
 
 <div class="login-container">
     <div class="login-card">
         <div class="text-center mb-4">
-            <i class="fas fa-cut fa-3x text-primary mb-3"></i>
-            <h2 class="text-light">Área Administrativa</h2>
-            <p class="text-muted">Faça login para acessar o painel</p>
+            <i class="fas fa-user fa-3x text-primary mb-3"></i>
+            <h2 class="text-light">Login</h2>
+            <p class="text-muted">Faça login para acessar sua conta</p>
         </div>
         
-        <StatusMessage Message="@errorMessage" />
-        <EditForm Model="Input" method="post" OnValidSubmit="LoginUser" FormName="login">
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                @errorMessage
+                <button type="button" class="btn-close" @onclick="() => errorMessage = null"></button>
+            </div>
+        }
+        
+        <EditForm Model="Input" OnValidSubmit="LoginUser" FormName="LoginForm">
             <DataAnnotationsValidator />
             <ValidationSummary class="text-danger" role="alert" />
             
             <div class="mb-3">
                 <label for="email" class="form-label text-light">Email</label>
-                <InputText @bind-Value="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="admin@barbearia.com" />
+                <InputText @bind-Value="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="seu@email.com" />
                 <ValidationMessage For="() => Input.Email" class="text-danger" />
             </div>
             
@@ -56,6 +66,12 @@
             </div>
             
             <div class="text-center mt-3">
+                <a href="/cliente/register" class="text-muted">
+                    <i class="fas fa-user-plus me-1"></i>Não tem uma conta? Cadastre-se
+                </a>
+            </div>
+            
+            <div class="text-center mt-2">
                 <a href="/" class="text-muted">
                     <i class="fas fa-arrow-left me-1"></i>Voltar para o site
                 </a>
@@ -70,31 +86,31 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        background: #0f0f0f;
         padding: 20px;
     }
     
     .login-card {
-        background-color: #2d2d2d;
-        border: 1px solid #404040;
+        background-color: #1a1a1a;
+        border: 1px solid #333333;
         border-radius: 12px;
         padding: 40px;
         width: 100%;
         max-width: 400px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
     }
     
     .form-control {
-        background-color: #404040;
-        border: 1px solid #505050;
+        background-color: #2d2d2d;
+        border: 1px solid #404040;
         color: #ffffff;
+        border-radius: 8px;
     }
     
     .form-control:focus {
-        background-color: #404040;
-        border-color: #007bff;
+        background-color: #2d2d2d;
+        border-color: #3b82f6;
         color: #ffffff;
-        box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.25);
+        box-shadow: 0 0 0 0.2rem rgba(59,130,246,0.25);
     }
     
     .form-control::placeholder {
@@ -102,13 +118,14 @@
     }
     
     .btn-primary {
-        background-color: #007bff;
-        border-color: #007bff;
+        background-color: #3b82f6;
+        border-color: #3b82f6;
+        border-radius: 8px;
     }
     
     .btn-primary:hover {
-        background-color: #0056b3;
-        border-color: #0056b3;
+        background-color: #2563eb;
+        border-color: #2563eb;
     }
     
     .text-muted {
@@ -126,17 +143,16 @@
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = default!;
 
-    [SupplyParameterFromForm]
-    private InputModel Input { get; set; } = new();
-
     [SupplyParameterFromQuery]
     private string? ReturnUrl { get; set; }
+
+    [SupplyParameterFromForm]
+    private InputModel Input { get; set; } = new();
 
     protected override async Task OnInitializedAsync()
     {
         if (HttpMethods.IsGet(HttpContext.Request.Method))
         {
-            // Clear the existing external cookie to ensure a clean login process
             await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
         }
     }
@@ -151,7 +167,7 @@
         }
 
         var result = await SignInManager.PasswordSignInAsync(
-            user.UserName, Input.Password, Input.RememberMe, lockoutOnFailure: false);
+            user.UserName ?? user.Email, Input.Password, Input.RememberMe, lockoutOnFailure: false);
 
         if (result.Succeeded)
         {
@@ -159,31 +175,30 @@
             
             // Verificar se o usuário é cliente
             var isCliente = await UserManager.IsInRoleAsync(user, "Cliente");
-            if (isCliente)
+            if (!isCliente)
             {
-                // Se for cliente, redirecionar para o login do cliente
-                RedirectManager.RedirectTo("/cliente/login");
+                // Se não for cliente, fazer logout e mostrar erro
+                await SignInManager.SignOutAsync();
+                errorMessage = "Este login é apenas para clientes. Use o login administrativo.";
                 return;
             }
             
-            // Se for admin ou profissional, redirecionar para o dashboard
-            var redirectUrl = !string.IsNullOrEmpty(ReturnUrl) ? ReturnUrl : "/admin";
+            // Redirecionar usando a mesma abordagem do admin
+            var redirectUrl = !string.IsNullOrEmpty(ReturnUrl) ? ReturnUrl : "/";
             RedirectManager.RedirectTo(redirectUrl);
         }
         else if (result.RequiresTwoFactor)
         {
-            RedirectManager.RedirectTo(
-                "Account/LoginWith2fa",
-                new() { ["returnUrl"] = ReturnUrl, ["rememberMe"] = Input.RememberMe });
+            errorMessage = "Autenticação de dois fatores não suportada.";
         }
         else if (result.IsLockedOut)
         {
             Logger.LogWarning("User account locked out.");
-            RedirectManager.RedirectTo("Account/Lockout");
+            errorMessage = "Conta bloqueada. Tente novamente mais tarde.";
         }
         else
         {
-            errorMessage = "Error: Invalid login attempt.";
+            errorMessage = "Email ou senha inválidos. Tente novamente.";
         }
     }
 

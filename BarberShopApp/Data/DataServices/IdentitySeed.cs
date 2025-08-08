@@ -8,7 +8,7 @@ namespace BarberShopApp.Data.DataServices
         {
             var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
-            string[] roleNames = { "Admin", "Profissional", "Client" };
+            string[] roleNames = { "Admin", "Profissional", "Cliente" };
             foreach (var roleName in roleNames)
             {
                 if (!await roleManager.RoleExistsAsync(roleName))

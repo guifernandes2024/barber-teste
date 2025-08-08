@@ -1,5 +1,5 @@
 @page "/admin/agendamentos/create"
-@attribute [Authorize]
+@attribute [Authorize(Roles = "Admin,Profissional")]
 @using Microsoft.EntityFrameworkCore
 @using BarberShopApp.Components.Pages.Components
 @using BarberShopApp.Core.Models
@@ -100,9 +100,35 @@
                         </h5>
                     </div>
                     <div class="card-body">
-                        <EditForm Model="Agendamento" OnValidSubmit="AddAgendamento">
+                        <EditForm Model="Agendamento" OnValidSubmit="AddAgendamento" FormName="AgendamentoCreateForm">
                             <DataAnnotationsValidator />
                             <ValidationSummary class="text-danger" role="alert"/>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="clienteSelect" class="form-label">Selecionar Cliente:</label>
+                                        <select id="clienteSelect" class="form-control" @onchange="OnClienteSelecionadoChanged">
+                                            <option value="">-- Selecione um cliente --</option>
+                                            @foreach (var cliente in Clientes)
+                                            {
+                                                <option value="@cliente.Id">@cliente.ApplicationUser.Nome - @cliente.Telefone</option>
+                                            }
+                                        </select>
+                                        <small class="form-text text-muted">Selecione um cliente cadastrado ou preencha os dados manualmente abaixo</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Ou cadastrar novo cliente:</label>
+                                        <div class="d-flex gap-2">
+                                            <button type="button" class="btn btn-outline-primary btn-sm" @onclick="AbrirModalNovoCliente">
+                                                <i class="fas fa-plus me-1"></i>Novo Cliente
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
 
                             <div class="row">
                                 <div class="col-md-6">
@@ -159,6 +185,76 @@
     </div>
 </div>
 
+<!-- Modal Novo Cliente -->
+@if (mostrarModalNovoCliente)
+{
+    <div class="modal fade show" style="display: block;" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-user-plus me-2"></i>Novo Cliente
+                    </h5>
+                    <button type="button" class="btn-close" @onclick="FecharModalNovoCliente"></button>
+                </div>
+                <div class="modal-body">
+                    <EditForm Model="novoCliente" OnValidSubmit="SalvarNovoCliente" FormName="NovoClienteForm">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary class="text-danger" role="alert"/>
+
+                        <div class="mb-3">
+                            <label for="novoClienteNome" class="form-label">Nome Completo:</label>
+                            <InputText id="novoClienteNome" @bind-Value="novoCliente.ApplicationUser.Nome" class="form-control" required />
+                            <ValidationMessage For="() => novoCliente.ApplicationUser.Nome" class="text-danger" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="novoClienteTelefone" class="form-label">Telefone:</label>
+                            <input type="text" id="novoClienteTelefone" class="form-control"
+                                   @bind="novoCliente.Telefone"
+                                   maxlength="15" required
+                                   placeholder="(11) 99999-9999" />
+                            <ValidationMessage For="() => novoCliente.Telefone" class="text-danger" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="novoClienteEmail" class="form-label">Email:</label>
+                            <InputText id="novoClienteEmail" @bind-Value="novoCliente.ApplicationUser.Email" class="form-control" type="email" required />
+                            <ValidationMessage For="() => novoCliente.ApplicationUser.Email" class="text-danger" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="novoClienteDataNascimento" class="form-label">Data de Nascimento:</label>
+                            <input type="date" id="novoClienteDataNascimento" class="form-control"
+                                   @bind="novoCliente.DataNascimento" required />
+                            <ValidationMessage For="() => novoCliente.DataNascimento" class="text-danger" />
+                        </div>
+
+                        <div class="d-flex gap-2 justify-content-end">
+                            <button type="button" class="btn btn-secondary" @onclick="FecharModalNovoCliente">
+                                <i class="fas fa-times me-1"></i>Cancelar
+                            </button>
+                            <button type="submit" class="btn btn-primary" disabled="@isSalvandoCliente">
+                                @if (isSalvandoCliente)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-2"></span>
+                                    <span>Salvando...</span>
+                                }
+                                else
+                                {
+                                    <i class="fas fa-save me-1"></i>
+                                    <span>Salvar Cliente</span>
+								}
+                            </button>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop fade show"></div>
+}
+
 @code {
     private Agendamento Agendamento { get; set; } = new();
     private List<Servico> Servicos { get; set; } = new();
@@ -168,6 +264,13 @@
     private DateTime? HorarioSelecionado { get; set; }
     private ApplicationUser? currentUser;
     private bool isProfissional = false;
+    private List<Cliente> Clientes { get; set; } = new();
+    private string clienteSelecionadoId { get; set; } = string.Empty;
+    
+    // Modal novo cliente
+    private bool mostrarModalNovoCliente { get; set; } = false;
+    private bool isSalvandoCliente { get; set; } = false;
+    private Cliente novoCliente { get; set; } = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -175,6 +278,7 @@
         await VerificarUsuario();
         await CarregarServicos();
         await CarregarProfissionais();
+        await CarregarClientes();
     }
 
     private async Task VerificarUsuario()
@@ -263,6 +367,134 @@
         HorarioSelecionado = horario;
         Agendamento.DataHora = horario;
         Agendamento.ProfissionalId = ProfissionalSelecionado?.Id ?? 0;
+        StateHasChanged();
+    }
+
+    private async Task CarregarClientes()
+    {
+        try
+        {
+            using var context = DbFactory.CreateDbContext();
+            Clientes = await context.Cliente
+                .Include(c => c.ApplicationUser)
+                .ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro ao carregar clientes: {ex.Message}");
+        }
+    }
+
+    private void OnClienteSelecionadoChanged(ChangeEventArgs e)
+    {
+        var clienteId = e.Value?.ToString();
+        clienteSelecionadoId = clienteId ?? string.Empty;
+        
+        if (!string.IsNullOrEmpty(clienteId))
+        {
+            var cliente = Clientes.FirstOrDefault(c => c.Id == clienteId);
+            if (cliente != null)
+            {
+                Agendamento.NomeDoCliente = cliente.ApplicationUser.Nome;
+                Agendamento.NumeroDoCliente = cliente.Telefone;
+                Agendamento.ClienteId = cliente.Id;
+            }
+        }
+        else
+        {
+            // Limpar dados se nenhum cliente for selecionado
+            Agendamento.NomeDoCliente = string.Empty;
+            Agendamento.NumeroDoCliente = string.Empty;
+            Agendamento.ClienteId = null;
+        }
+        StateHasChanged();
+    }
+
+    private void AbrirModalNovoCliente()
+    {
+        novoCliente = new Cliente();
+        mostrarModalNovoCliente = true;
+        StateHasChanged();
+    }
+
+    private void FecharModalNovoCliente()
+    {
+        mostrarModalNovoCliente = false;
+        novoCliente = new Cliente();
+        StateHasChanged();
+    }
+
+    private async Task SalvarNovoCliente()
+    {
+        try
+        {
+            isSalvandoCliente = true;
+            StateHasChanged();
+
+            using var context = DbFactory.CreateDbContext();
+            
+            // Criar novo ApplicationUser
+            var user = new ApplicationUser
+            {
+                UserName = novoCliente.ApplicationUser.Email,
+                Email = novoCliente.ApplicationUser.Email,
+                Nome = novoCliente.ApplicationUser.Nome,
+                EmailConfirmed = true
+            };
+
+            // Gerar senha temporária
+            var senhaTemporaria = Guid.NewGuid().ToString("N").Substring(0, 8);
+            var result = await UserManager.CreateAsync(user, senhaTemporaria);
+            
+            if (result.Succeeded)
+            {
+                // Adicionar ao role Cliente
+                await UserManager.AddToRoleAsync(user, "Cliente");
+                
+                // Criar registro Cliente
+                var cliente = new Cliente
+                {
+                    Id = user.Id,
+                    Telefone = novoCliente.Telefone,
+                    DataNascimento = novoCliente.DataNascimento
+                };
+                
+                context.Cliente.Add(cliente);
+                await context.SaveChangesAsync();
+                
+                // Atualizar lista de clientes
+                await CarregarClientes();
+                
+                // Selecionar o novo cliente
+                clienteSelecionadoId = cliente.Id;
+                OnClienteSelecionadoChanged(new ChangeEventArgs { Value = cliente.Id });
+                
+                FecharModalNovoCliente();
+            }
+            else
+            {
+                // Tratar erros de criação
+                var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                Console.WriteLine($"Erro ao criar cliente: {errors}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro ao salvar cliente: {ex.Message}");
+        }
+        finally
+        {
+            isSalvandoCliente = false;
+            StateHasChanged();
+        }
+    }
+
+    private void LimparDadosCliente()
+    {
+        Agendamento.NomeDoCliente = string.Empty;
+        Agendamento.NumeroDoCliente = string.Empty;
+        Agendamento.ClienteId = null;
+        clienteSelecionadoId = string.Empty;
         StateHasChanged();
     }
 

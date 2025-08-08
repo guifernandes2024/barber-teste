@@ -9,29 +9,81 @@
 @inject IdentityUserAccessor UserAccessor
 @inject IdentityRedirectManager RedirectManager
 
-<PageTitle>Profile</PageTitle>
+<PageTitle>Perfil - BarberShop</PageTitle>
 
-<h3>Profile</h3>
-<StatusMessage />
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="mb-0"><i class="fas fa-user me-2"></i>Meu Perfil</h3>
+                </div>
+                <div class="card-body">
+                    <StatusMessage />
 
-<div class="row">
-    <div class="col-md-6">
-        <EditForm Model="Input" FormName="profile" OnValidSubmit="OnValidSubmitAsync" method="post">
-            <DataAnnotationsValidator />
-            <ValidationSummary class="text-danger" role="alert" />
-            <div class="form-floating mb-3">
-                <input type="text" value="@username" class="form-control" placeholder="Please choose your username." disabled />
-                <label for="username" class="form-label">Username</label>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <EditForm Model="Input" FormName="profile" OnValidSubmit="OnValidSubmitAsync" method="post">
+                                <DataAnnotationsValidator />
+                                <ValidationSummary class="text-danger" role="alert" />
+                                
+                                <div class="mb-3">
+                                    <label for="username" class="form-label">Nome de Usuário</label>
+                                    <input type="text" value="@username" class="form-control" placeholder="Nome de usuário" disabled />
+                                    <small class="form-text text-muted">O nome de usuário não pode ser alterado</small>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="phone-number" class="form-label">Número de Telefone</label>
+                                    <input type="text" id="phone-number" class="form-control" 
+                                           @bind="Input.PhoneNumber" 
+                                           placeholder="(11) 99999-9999" maxlength="15" />
+                                    <ValidationMessage For="() => Input.PhoneNumber" class="text-danger" />
+                                    <small class="form-text text-muted">Digite seu número de telefone para contato</small>
+                                </div>
+                                
+                                <div class="d-flex gap-2">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save me-2"></i>Salvar Alterações
+                                    </button>
+                                    <a href="/admin" class="btn btn-secondary">
+                                        <i class="fas fa-arrow-left me-2"></i>Voltar
+                                    </a>
+                                </div>
+                            </EditForm>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h5 class="card-title"><i class="fas fa-info-circle me-2"></i>Informações da Conta</h5>
+                                    <div class="mb-3">
+                                        <strong>Nome:</strong> @user.Nome
+                                    </div>
+                                    <div class="mb-3">
+                                        <strong>Email:</strong> @user.Email
+                                    </div>
+                                    <div class="mb-3">
+                                        <strong>Telefone:</strong> @(string.IsNullOrEmpty(user.PhoneNumber) ? "Não informado" : user.PhoneNumber)
+                                    </div>
+                                    <div class="mb-3">
+                                        <strong>Status:</strong> 
+                                        @if (user.EmailConfirmed)
+                                        {
+                                            <span class="badge bg-success">Email Confirmado</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-warning">Email Pendente</span>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="form-floating mb-3">
-                <input type="text" id="phone-number" class="form-control" 
-                       @bind="Input.PhoneNumber" 
-                       placeholder="(11) 99999-9999" maxlength="15" />
-                <label for="phone-number" class="form-label">Phone number</label>
-                <ValidationMessage For="() => Input.PhoneNumber" class="text-danger" />
-            </div>
-            <button type="submit" class="w-100 btn btn-lg btn-primary">Save</button>
-        </EditForm>
+        </div>
     </div>
 </div>
 
@@ -62,18 +114,18 @@
             var setPhoneResult = await UserManager.SetPhoneNumberAsync(user, Input.PhoneNumber);
             if (!setPhoneResult.Succeeded)
             {
-                RedirectManager.RedirectToCurrentPageWithStatus("Error: Failed to set phone number.", HttpContext);
+                RedirectManager.RedirectToCurrentPageWithStatus("Erro: Falha ao definir número de telefone.", HttpContext);
             }
         }
 
         await SignInManager.RefreshSignInAsync(user);
-        RedirectManager.RedirectToCurrentPageWithStatus("Your profile has been updated", HttpContext);
+        RedirectManager.RedirectToCurrentPageWithStatus("Seu perfil foi atualizado com sucesso", HttpContext);
     }
 
     private sealed class InputModel
     {
         [Phone]
-        [Display(Name = "Phone number")]
+        [Display(Name = "Número de telefone")]
         public string? PhoneNumber { get; set; }
     }
 }

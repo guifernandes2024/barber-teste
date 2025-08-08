@@ -150,17 +150,48 @@
                 await userManager.AddToRoleAsync(profissionalUser, "Profissional");
             }
 
-            // Criar alguns agendamentos de exemplo
-            var hoje = DateTime.Today;
-            var agendamentos = new List<Agendamento>
+            // Criar cliente de exemplo
+            var clienteUser = new ApplicationUser
             {
-                new Agendamento(hoje.AddDays(1).AddHours(9), "João Silva", "(11) 99999-1111", servicos, profissional, "Corte tradicional"),
+                UserName = "joao.silva@email.com",
+                Nome = "João Silva",
+                Email = "joao.silva@email.com",
+                EmailConfirmed = true
             };
 
-            context.Agendamento.AddRange(agendamentos);
-            await context.SaveChangesAsync();
+            var clientePassword = "Cliente@123";
+            var resultCliente = await userManager.CreateAsync(clienteUser, clientePassword);
+            
+            if (resultCliente.Succeeded)
+            {
+                await userManager.AddToRoleAsync(clienteUser, "Cliente");
+                
+                // Criar registro Cliente
+                var cliente = new BarberShopApp.Core.Models.Cliente
+                {
+                    Id = clienteUser.Id,
+                    Telefone = "(11) 99999-1111",
+                    DataNascimento = new DateTime(1995, 5, 15)
+                };
+                
+                context.Cliente.Add(cliente);
+                await context.SaveChangesAsync();
 
-            Mensagem = $"Dados inicializados com sucesso! Criados {servicos.Count} serviços, 1 profissional, 1 usuário profissional e {agendamentos.Count} agendamentos de exemplo.";
+                // Criar alguns agendamentos de exemplo
+                var hoje = DateTime.Today;
+                var agendamentos = new List<Agendamento>
+                {
+                    new Agendamento(hoje.AddDays(1).AddHours(9), "João Silva", "(11) 99999-1111", servicos, profissional, "Corte tradicional"),
+                };
+
+                // Vincular agendamento ao cliente
+                agendamentos[0].ClienteId = clienteUser.Id;
+
+                context.Agendamento.AddRange(agendamentos);
+                await context.SaveChangesAsync();
+            }
+
+            Mensagem = $"Dados inicializados com sucesso! Criados {servicos.Count} serviços, 1 profissional, 1 cliente e 1 agendamento de exemplo.";
             TipoMensagem = "success";
         }
         catch (Exception ex)

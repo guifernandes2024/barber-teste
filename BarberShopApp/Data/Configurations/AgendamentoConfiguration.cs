@@ -26,6 +26,10 @@ namespace BarberShopApp.Data.Configurations
             builder.Property(a => a.ProfissionalId)
                 .IsRequired();
 
+            // Nova propriedade ClienteId
+            builder.Property(a => a.ClienteId)
+                .HasMaxLength(450); // Tamanho padrão para IDs do Identity
+
             builder.Property(a => a.Observacoes)
                 .HasMaxLength(500);
 
@@ -39,6 +43,12 @@ namespace BarberShopApp.Data.Configurations
                 .WithMany(p => p.Agendamentos)
                 .HasForeignKey(a => a.ProfissionalId)
                 .IsRequired();
+
+            // Configure Many-to-One relationship with Cliente
+            builder.HasOne(a => a.Cliente)
+                .WithMany()
+                .HasForeignKey(a => a.ClienteId)
+                .IsRequired(false); // Opcional, para manter compatibilidade
 
             // Ignore calculated properties
             builder.Ignore(a => a.DataHoraFim);

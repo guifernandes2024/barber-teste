@@ -99,7 +99,7 @@ namespace BarberShopApp.Components.Account.Pages
                         DataNacimento = Input.DataNascimentoProfissional!.Value,
                         Fumante = Input.FumanteProfissional,
                         ImgUrl = Input.ImgUrlProfissional!,
-                        PercentualDeComissao = Input.PercentualDeComissaoProfissional,
+                        PercentualDeComissao = Input.PercentualDeComissaoProfissional ?? 0,
                         DataCriacao = DateTime.UtcNow,
                         DataAtualizacao = DateTime.UtcNow
                     };
@@ -113,11 +113,11 @@ namespace BarberShopApp.Components.Account.Pages
                     user.UserName = Input.NomeCliente;
                     await UserManager.AddToRoleAsync(user, "Client");
 
-                    var cliente = new Cliente()
+                    var cliente = new BarberShopApp.Core.Models.Cliente()
                     {
-                        ApplicationUser = user,
-                        Nome = user.UserName,
-                        Telefone = Input.TelefoneCliente
+                        Id = user.Id,
+                        Telefone = Input.TelefoneCliente ?? string.Empty,
+                        DataNascimento = DateTime.Today // Valor padrão, pode ser ajustado depois
                     };
 
                     await DbContext.Cliente.AddAsync(cliente);

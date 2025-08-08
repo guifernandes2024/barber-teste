@@ -18,6 +18,9 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents()
     .AddInteractiveWebAssemblyComponents();
 
+// Adicionar controladores para API
+builder.Services.AddControllers();
+
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<IdentityUserAccessor>();
 builder.Services.AddScoped<IdentityRedirectManager>();
@@ -38,6 +41,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 builder.Services.AddScoped<HorarioService>();
 builder.Services.AddScoped<ConfiguracaoBarbeariaService>();
+builder.Services.AddScoped<AgendamentoTempService>();
 
 builder.Services.AddQuickGridEntityFrameworkAdapter();
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
@@ -101,5 +105,8 @@ app.MapRazorComponents<App>()
 
 // Adicionar endpoints adicionais exigidos pelos componentes Identity /Account Razor.
 app.MapAdditionalIdentityEndpoints();
+
+// Mapear controladores
+app.MapControllers();
 
 app.Run();

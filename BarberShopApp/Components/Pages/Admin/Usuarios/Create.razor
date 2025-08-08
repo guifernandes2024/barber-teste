@@ -117,27 +117,6 @@
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="mb-3">
-                                        <label for="tipoDocumento" class="form-label">Tipo de Documento *</label>
-                                        <InputSelect id="tipoDocumento" @bind-Value="DadosProfissional.TipoDocumento" class="form-control" required>
-                                            <option value="">Selecione o Tipo de Documento</option>
-                                            @foreach (var type in Enum.GetValues<DocumentType>())
-                                            {
-                                                <option value="@type">@type.ToString()</option>
-                                            }
-                                        </InputSelect>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label for="documento" class="form-label">Número do Documento *</label>
-                                        <InputText id="documento" @bind-Value="DadosProfissional.Documento" class="form-control" required />
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="mb-3">
                                         <label for="dataNascimento" class="form-label">Data de Nascimento *</label>
                                         <InputDate id="dataNascimento" @bind-Value="DadosProfissional.DataNacimento" class="form-control" required />
                                     </div>

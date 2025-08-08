@@ -19,12 +19,15 @@ namespace BarberShopApp.Core.Models
 
         [Required(ErrorMessage = "Profissional é obrigatório")]
         public int ProfissionalId { get; set; }
+        
+        public string? ClienteId { get; set; }
 
         [StringLength(500, ErrorMessage = "Observações devem ter no máximo 500 caracteres")]
         public string Observacoes { get; set; } = string.Empty;
 
         public virtual ICollection<Servico> Servicos { get; set; } = new List<Servico>();
         public virtual Profissional Profissional { get; set; } = null!;
+        public virtual Cliente? Cliente { get; set; }
 
         public DateTime DataHoraFim => DataHora.AddMinutes(Servicos?.Sum( s => s.DuracaoEmMinutos) ?? 0);
 

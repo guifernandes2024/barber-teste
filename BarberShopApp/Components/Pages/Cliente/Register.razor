@@ -1,0 +1,271 @@
+@page "/cliente/register"
+@using Microsoft.AspNetCore.Identity
+@using BarberShopApp.Data
+@using BarberShopApp.Components.Account
+@using System.ComponentModel.DataAnnotations
+@using System.Security.Claims
+@using BarberShopApp.Core.Models
+@using Microsoft.EntityFrameworkCore
+@inject UserManager<ApplicationUser> UserManager
+@inject SignInManager<ApplicationUser> SignInManager
+@inject NavigationManager Navigation
+@inject IDbContextFactory<ApplicationDbContext> DbFactory
+@inject IdentityRedirectManager RedirectManager
+
+@layout Layout.EmptyLayout
+<PageTitle>Cadastro - Cliente</PageTitle>
+
+<div class="register-container">
+    <div class="register-card">
+        <div class="text-center mb-4">
+            <i class="fas fa-user-plus fa-3x text-success mb-3"></i>
+            <h2 class="text-light">Crie sua conta!</h2>
+            <p class="text-muted">Preencha os dados abaixo para se cadastrar</p>
+        </div>
+        
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                @errorMessage
+                <button type="button" class="btn-close" @onclick="() => errorMessage = null"></button>
+            </div>
+        }
+        
+        <EditForm Model="Input" OnValidSubmit="RegisterUser" FormName="RegisterForm">
+            <DataAnnotationsValidator />
+            <ValidationSummary class="text-danger" role="alert" />
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="nome" class="form-label text-light">Nome Completo *</label>
+                        <InputText @bind-Value="Input.Nome" class="form-control" autocomplete="name" aria-required="true" placeholder="Seu nome completo" />
+                        <ValidationMessage For="() => Input.Nome" class="text-danger" />
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="telefone" class="form-label text-light">Telefone *</label>
+                        <InputText @bind-Value="Input.Telefone" class="form-control" autocomplete="tel" aria-required="true" placeholder="(11) 99999-9999" />
+                        <ValidationMessage For="() => Input.Telefone" class="text-danger" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="email" class="form-label text-light">Email *</label>
+                <InputText @bind-Value="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="seu@email.com" />
+                <ValidationMessage For="() => Input.Email" class="text-danger" />
+            </div>
+
+            <div class="mb-3">
+                <label for="dataNascimento" class="form-label text-light">Data de Nascimento *</label>
+                <InputDate @bind-Value="Input.DataNascimento" class="form-control" aria-required="true" />
+                <ValidationMessage For="() => Input.DataNascimento" class="text-danger" />
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="password" class="form-label text-light">Senha *</label>
+                        <InputText type="password" @bind-Value="Input.Password" class="form-control" autocomplete="new-password" aria-required="true" placeholder="Sua senha" />
+                        <ValidationMessage For="() => Input.Password" class="text-danger" />
+                        <small class="form-text text-muted">
+                            A senha deve ter pelo menos 6 caracteres
+                        </small>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="confirmPassword" class="form-label text-light">Confirmar Senha *</label>
+                        <InputText type="password" @bind-Value="Input.ConfirmPassword" class="form-control" autocomplete="new-password" aria-required="true" placeholder="Confirme sua senha" />
+                        <ValidationMessage For="() => Input.ConfirmPassword" class="text-danger" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <div class="form-check">
+                    <InputCheckbox @bind-Value="Input.AceitarTermos" class="form-check-input" />
+                    <label class="form-check-label text-light" for="aceitarTermos">
+                        Aceito os <a href="#" class="text-decoration-none">termos de uso</a> e 
+                        <a href="#" class="text-decoration-none">política de privacidade</a> *
+                    </label>
+                    <ValidationMessage For="() => Input.AceitarTermos" class="text-danger" />
+                </div>
+            </div>
+            
+            <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-success btn-lg">
+                    <i class="fas fa-user-plus me-2"></i>Criar Conta
+                </button>
+            </div>
+            
+            <div class="text-center mt-3">
+                <a href="/cliente/login" class="text-muted">
+                    <i class="fas fa-sign-in-alt me-1"></i>Já tem uma conta? Faça login
+                </a>
+            </div>
+            
+            <div class="text-center mt-2">
+                <a href="/" class="text-muted">
+                    <i class="fas fa-arrow-left me-1"></i>Voltar para o site
+                </a>
+            </div>
+        </EditForm>
+    </div>
+</div>
+
+<style>
+    .register-container {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+    
+    .register-card {
+        background-color: #1a1a1a;
+        border: 1px solid #333333;
+        border-radius: 12px;
+        padding: 40px;
+        width: 100%;
+        max-width: 600px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+    
+    .form-control {
+        background-color: #2d2d2d;
+        border: 1px solid #404040;
+        color: #ffffff;
+        border-radius: 8px;
+    }
+    
+    .form-control:focus {
+        background-color: #2d2d2d;
+        border-color: #3b82f6;
+        color: #ffffff;
+        box-shadow: 0 0 0 0.2rem rgba(59,130,246,0.25);
+    }
+    
+    .form-control::placeholder {
+        color: #888888;
+    }
+    
+    .btn-success {
+        background-color: #10b981;
+        border-color: #10b981;
+        border-radius: 8px;
+    }
+    
+    .btn-success:hover {
+        background-color: #059669;
+        border-color: #059669;
+    }
+    
+    .text-muted {
+        color: #888888 !important;
+    }
+    
+    .text-light {
+        color: #ffffff !important;
+    }
+</style>
+
+@code {
+    private string? errorMessage;
+
+    [SupplyParameterFromForm]
+    private InputModel Input { get; set; } = new();
+
+    public async Task RegisterUser()
+    {
+        // Verificar se as senhas coincidem
+        if (Input.Password != Input.ConfirmPassword)
+        {
+            errorMessage = "As senhas não coincidem.";
+            return;
+        }
+
+        // Verificar se o email já existe
+        var existingUser = await UserManager.FindByEmailAsync(Input.Email);
+        if (existingUser != null)
+        {
+            errorMessage = "Este email já está cadastrado. Use outro email ou faça login.";
+            return;
+        }
+
+        // Criar novo usuário
+        var user = new ApplicationUser
+        {
+            UserName = Input.Email,
+            Email = Input.Email,
+            Nome = Input.Nome,
+            PhoneNumber = Input.Telefone,
+            EmailConfirmed = true,
+            CreatedAt = DateTime.Now
+        };
+
+        var result = await UserManager.CreateAsync(user, Input.Password);
+
+        if (result.Succeeded)
+        {
+            // Adicionar o usuário ao role "Cliente"
+            await UserManager.AddToRoleAsync(user, "Cliente");
+            
+            // Criar registro Cliente
+            using var context = DbFactory.CreateDbContext();
+            var cliente = new Cliente
+            {
+                Id = user.Id,
+                Telefone = Input.Telefone,
+                DataNascimento = Input.DataNascimento
+            };
+            
+            context.Cliente.Add(cliente);
+            await context.SaveChangesAsync();
+            
+            // Fazer login automaticamente
+            await SignInManager.SignInAsync(user, isPersistent: false);
+            
+            // Redirecionar usando a mesma abordagem do admin
+            RedirectManager.RedirectTo("/");
+        }
+        else
+        {
+            errorMessage = string.Join(", ", result.Errors.Select(e => e.Description));
+        }
+    }
+
+    private sealed class InputModel
+    {
+        [Required(ErrorMessage = "Nome é obrigatório")]
+        [StringLength(100, ErrorMessage = "O nome deve ter no máximo {1} caracteres.")]
+        public string Nome { get; set; } = "";
+
+        [Required(ErrorMessage = "Telefone é obrigatório")]
+        [StringLength(20, ErrorMessage = "O telefone deve ter no máximo {1} caracteres.")]
+        [Phone(ErrorMessage = "Formato de telefone inválido")]
+        public string Telefone { get; set; } = "";
+
+        [Required(ErrorMessage = "Data de nascimento é obrigatória")]
+        public DateTime DataNascimento { get; set; } = DateTime.Today;
+
+        [Required(ErrorMessage = "Email é obrigatório")]
+        [EmailAddress(ErrorMessage = "Email inválido")]
+        public string Email { get; set; } = "";
+
+        [Required(ErrorMessage = "Senha é obrigatória")]
+        [StringLength(100, ErrorMessage = "A senha deve ter pelo menos {2} caracteres.", MinimumLength = 6)]
+        public string Password { get; set; } = "";
+
+        [Required(ErrorMessage = "Confirmação de senha é obrigatória")]
+        [Compare("Password", ErrorMessage = "As senhas não coincidem")]
+        public string ConfirmPassword { get; set; } = "";
+
+        [Required(ErrorMessage = "Você deve aceitar os termos de uso")]
+        public bool AceitarTermos { get; set; }
+    }
+}

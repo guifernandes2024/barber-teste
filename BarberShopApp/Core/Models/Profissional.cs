@@ -17,7 +17,7 @@ namespace BarberShopApp.Core.Models
         [Url(ErrorMessage = "A URL da imagem é inválida.")]
         public string ImgUrl { get; set; } = string.Empty;
 
-        public int? PercentualDeComissao { get; set; }
+        public decimal PercentualDeComissao { get; set; }
         public virtual ICollection<Servico> Especialidades { get; set; } = new List<Servico>();
         public virtual ICollection<Agendamento> Agendamentos { get; set; } = new List<Agendamento>();
 
@@ -44,6 +44,7 @@ namespace BarberShopApp.Core.Models
         CPF,
         CNPJ,
         RG,
+        CNH,
         Passaporte
     }
 }

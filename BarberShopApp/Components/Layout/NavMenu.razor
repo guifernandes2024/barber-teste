@@ -39,6 +39,26 @@
                 <AuthorizeView Roles="Admin" Context="adminContext2">
                     <Authorized>
                         <div class="nav-item px-3">
+                            <NavLink class="nav-link" href="/admin/clientes">
+                                <i class="fas fa-user-friends me-2"></i> Clientes
+                            </NavLink>
+                        </div>
+                    </Authorized>
+                </AuthorizeView>
+
+                <AuthorizeView Roles="Admin" Context="adminContext5">
+                    <Authorized>
+                        <div class="nav-item px-3">
+                            <NavLink class="nav-link" href="/admin/profissionais">
+                                <i class="fas fa-user-tie me-2"></i> Profissionais
+                            </NavLink>
+                        </div>
+                    </Authorized>
+                </AuthorizeView>
+
+                <AuthorizeView Roles="Admin" Context="adminContext6">
+                    <Authorized>
+                        <div class="nav-item px-3">
                             <NavLink class="nav-link" href="/admin/usuarios">
                                 <i class="fas fa-users me-2"></i> Usuários
                             </NavLink>
@@ -71,16 +91,6 @@
                         <i class="fas fa-user me-2"></i> Perfil
                     </NavLink>
                 </div>
-
-                <AuthorizeView Roles="Admin" Context="adminContext3">
-                    <Authorized>
-                        <div class="nav-item px-3">
-                            <NavLink class="nav-link" href="Account/Register">
-                                <i class="fas fa-user-plus me-2"></i> Novo Usuário
-                            </NavLink>
-                        </div>
-                    </Authorized>
-                </AuthorizeView>
             </Authorized>
         </AuthorizeView>
     </nav>

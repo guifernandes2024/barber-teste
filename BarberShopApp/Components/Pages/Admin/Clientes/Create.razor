@@ -1,0 +1,283 @@
+@page "/admin/clientes/create"
+@attribute [Authorize(Roles = "Admin")]
+@using Microsoft.EntityFrameworkCore
+@using BarberShopApp.Core.Models
+@using BarberShopApp.Data
+@using Microsoft.AspNetCore.Identity
+@using System.ComponentModel.DataAnnotations
+@inject IDbContextFactory<ApplicationDbContext> DbFactory
+@inject UserManager<ApplicationUser> UserManager
+@inject NavigationManager Navigation
+
+@rendermode InteractiveServer
+<PageTitle>Criar Cliente - Admin</PageTitle>
+
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow-lg">
+                <div class="card-header bg-success text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h3 class="card-title mb-0">
+                            <i class="fas fa-user-plus me-2"></i>Criar Novo Cliente
+                        </h3>
+                        <a href="/admin/clientes" class="btn btn-outline-light btn-sm">
+                            <i class="fas fa-arrow-left me-1"></i>Voltar
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body p-4">
+                    @if (!string.IsNullOrEmpty(mensagemErro))
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            @mensagemErro
+                            <button type="button" class="btn-close" @onclick="() => mensagemErro = null"></button>
+                        </div>
+                    }
+
+                    @if (!string.IsNullOrEmpty(mensagemSucesso))
+                    {
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <i class="fas fa-check-circle me-2"></i>
+                            @mensagemSucesso
+                            <button type="button" class="btn-close" @onclick="() => mensagemSucesso = null"></button>
+                        </div>
+                    }
+
+                    <EditForm Model="clienteModel" OnValidSubmit="ProcessCreate" FormName="ClienteCreateForm">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary />
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="nome" class="form-label">Nome Completo *</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">
+                                            <i class="fas fa-user"></i>
+                                        </span>
+                                        <InputText id="nome" class="form-control" @bind-Value="clienteModel.Nome" 
+                                                 placeholder="Nome completo do cliente" />
+                                    </div>
+                                    <ValidationMessage For="@(() => clienteModel.Nome)" />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="email" class="form-label">Email *</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">
+                                            <i class="fas fa-envelope"></i>
+                                        </span>
+                                        <InputText id="email" class="form-control" @bind-Value="clienteModel.Email" 
+                                                 type="email" placeholder="cliente@email.com" />
+                                    </div>
+                                    <ValidationMessage For="@(() => clienteModel.Email)" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="telefone" class="form-label">Telefone *</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">
+                                            <i class="fas fa-phone"></i>
+                                        </span>
+                                        <InputText id="telefone" class="form-control" @bind-Value="clienteModel.Telefone" 
+                                                 placeholder="(11) 99999-9999" />
+                                    </div>
+                                    <ValidationMessage For="@(() => clienteModel.Telefone)" />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="dataNascimento" class="form-label">Data de Nascimento *</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">
+                                            <i class="fas fa-calendar"></i>
+                                        </span>
+                                        <InputDate id="dataNascimento" class="form-control" @bind-Value="clienteModel.DataNascimento" />
+                                    </div>
+                                    <ValidationMessage For="@(() => clienteModel.DataNascimento)" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="password" class="form-label">Senha *</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">
+                                            <i class="fas fa-lock"></i>
+                                        </span>
+                                        <InputText type="password" id="password" class="form-control" 
+                                                 @bind-Value="clienteModel.Password" placeholder="Senha do cliente" />
+                                        <button type="button" class="btn btn-outline-secondary" @onclick="TogglePasswordVisibility">
+                                            <i class="fas @(showPassword ? "fa-eye-slash" : "fa-eye")"></i>
+                                        </button>
+                                    </div>
+                                    <ValidationMessage For="@(() => clienteModel.Password)" />
+                                    <small class="form-text text-muted">
+                                        A senha deve ter pelo menos 6 caracteres
+                                    </small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="confirmPassword" class="form-label">Confirmar Senha *</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">
+                                            <i class="fas fa-lock"></i>
+                                        </span>
+                                        <InputText type="password" id="confirmPassword" class="form-control" 
+                                                 @bind-Value="clienteModel.ConfirmPassword" placeholder="Confirme a senha" />
+                                    </div>
+                                    <ValidationMessage For="@(() => clienteModel.ConfirmPassword)" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 mb-3">
+                            <button type="submit" class="btn btn-success btn-lg" disabled="@isLoading">
+                                @if (isLoading)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                    <span>Criando...</span>
+                                }
+                                else
+                                {
+                                    <i class="fas fa-user-plus me-2"></i>
+                                    <span>Criar Cliente</span>
+                                }
+                            </button>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private ClienteModel clienteModel = new();
+    private bool isLoading = false;
+    private string? mensagemErro;
+    private string? mensagemSucesso;
+    private bool showPassword = false;
+
+    private async Task ProcessCreate()
+    {
+        if (isLoading) return;
+        
+        isLoading = true;
+        mensagemErro = null;
+        mensagemSucesso = null;
+
+        try
+        {
+            // Verificar se as senhas coincidem
+            if (clienteModel.Password != clienteModel.ConfirmPassword)
+            {
+                mensagemErro = "As senhas não coincidem.";
+                isLoading = false;
+                return;
+            }
+
+            // Verificar se o email já existe
+            var existingUser = await UserManager.FindByEmailAsync(clienteModel.Email);
+            if (existingUser != null)
+            {
+                mensagemErro = "Este email já está cadastrado. Use outro email.";
+                isLoading = false;
+                return;
+            }
+
+            // Criar novo usuário
+            var user = new ApplicationUser
+            {
+                UserName = clienteModel.Email,
+                Email = clienteModel.Email,
+                Nome = clienteModel.Nome,
+                EmailConfirmed = true,
+                CreatedAt = DateTime.Now
+            };
+
+            var result = await UserManager.CreateAsync(user, clienteModel.Password);
+
+            if (result.Succeeded)
+            {
+                // Adicionar o usuário ao role "Cliente"
+                await UserManager.AddToRoleAsync(user, "Cliente");
+                
+                // Criar registro Cliente
+                using var context = DbFactory.CreateDbContext();
+                var cliente = new Cliente
+                {
+                    Id = user.Id,
+                    Telefone = clienteModel.Telefone,
+                    DataNascimento = clienteModel.DataNascimento
+                };
+                
+                context.Cliente.Add(cliente);
+                await context.SaveChangesAsync();
+                
+                mensagemSucesso = "Cliente criado com sucesso!";
+                
+                // Limpar formulário
+                clienteModel = new();
+                
+                // Redirecionar após 2 segundos
+                await Task.Delay(2000);
+                Navigation.NavigateTo("/admin/clientes");
+            }
+            else
+            {
+                mensagemErro = string.Join(", ", result.Errors.Select(e => e.Description));
+            }
+        }
+        catch (Exception ex)
+        {
+            mensagemErro = $"Erro ao criar cliente: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void TogglePasswordVisibility()
+    {
+        showPassword = !showPassword;
+        StateHasChanged();
+    }
+
+    public class ClienteModel
+    {
+        [Required(ErrorMessage = "Nome é obrigatório")]
+        [StringLength(100, ErrorMessage = "O nome deve ter no máximo {1} caracteres.")]
+        public string Nome { get; set; } = "";
+
+        [Required(ErrorMessage = "Email é obrigatório")]
+        [EmailAddress(ErrorMessage = "Email inválido")]
+        public string Email { get; set; } = "";
+
+        [Required(ErrorMessage = "Telefone é obrigatório")]
+        [StringLength(20, ErrorMessage = "O telefone deve ter no máximo {1} caracteres.")]
+        public string Telefone { get; set; } = "";
+
+        [Required(ErrorMessage = "Data de nascimento é obrigatória")]
+        public DateTime DataNascimento { get; set; } = DateTime.Today;
+
+        [Required(ErrorMessage = "Senha é obrigatória")]
+        [StringLength(100, ErrorMessage = "A senha deve ter pelo menos {2} caracteres.", MinimumLength = 6)]
+        public string Password { get; set; } = "";
+
+        [Required(ErrorMessage = "Confirmação de senha é obrigatória")]
+        [Compare("Password", ErrorMessage = "As senhas não coincidem")]
+        public string ConfirmPassword { get; set; } = "";
+    }
+}

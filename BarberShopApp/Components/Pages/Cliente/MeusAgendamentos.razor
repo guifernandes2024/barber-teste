@@ -1,0 +1,228 @@
+@page "/cliente/meus-agendamentos"
+@attribute [Authorize(Roles = "Cliente")]
+@using Microsoft.EntityFrameworkCore
+@using BarberShopApp.Core.Models
+@using BarberShopApp.Data
+@using Microsoft.AspNetCore.Identity
+@inject IDbContextFactory<ApplicationDbContext> DbFactory
+@inject UserManager<ApplicationUser> UserManager
+@inject SignInManager<ApplicationUser> SignInManager
+@inject NavigationManager NavigationManager
+
+@layout Layout.LandingLayout
+@rendermode InteractiveServer
+<PageTitle>Meus Agendamentos - Barbearia</PageTitle>
+
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1><i class="fas fa-calendar-check me-2"></i>Meus Agendamentos</h1>
+                <a href="/#agendamento" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>Novo Agendamento
+                </a>
+            </div>
+
+            @if (isLoading)
+            {
+                <div class="text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Carregando...</span>
+                    </div>
+                </div>
+            }
+            else if (!Agendamentos.Any())
+            {
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Você ainda não possui agendamentos. 
+                    <a href="/#agendamento" class="alert-link">Clique aqui</a> para fazer seu primeiro agendamento!
+                </div>
+            }
+            else
+            {
+                <div class="row">
+                    @foreach (var agendamento in Agendamentos.OrderByDescending(a => a.DataHora))
+                    {
+                        <div class="col-lg-6 col-md-12 mb-4">
+                            <div class="card h-100 @GetStatusClass(agendamento)">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <h5 class="mb-0">
+                                        <i class="fas fa-calendar me-2"></i>
+                                        @agendamento.DataString
+                                    </h5>
+                                    <span class="badge @GetStatusBadgeClass(agendamento)">
+                                        @GetStatusText(agendamento)
+                                    </span>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <p><strong><i class="fas fa-clock me-2"></i>Horário:</strong></p>
+                                            <p class="text-muted">@agendamento.HoraInicioString - @agendamento.HoraFimString</p>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <p><strong><i class="fas fa-user-tie me-2"></i>Profissional:</strong></p>
+                                            <p class="text-muted">@GetProfissionalNome(agendamento.Profissional)</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <p><strong><i class="fas fa-scissors me-2"></i>Serviços:</strong></p>
+                                        <div class="d-flex flex-wrap gap-1">
+                                            @foreach (var servico in agendamento.Servicos)
+                                            {
+                                                <span class="badge bg-secondary">@servico.Nome</span>
+                                            }
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <p><strong><i class="fas fa-dollar-sign me-2"></i>Valor Total:</strong></p>
+                                            <p class="text-success fw-bold">R$ @agendamento.Servicos.Sum(s => s.Preco).ToString("F2")</p>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <p><strong><i class="fas fa-clock me-2"></i>Duração:</strong></p>
+                                            <p class="text-muted">@agendamento.Servicos.Sum(s => s.DuracaoEmMinutos) min</p>
+                                        </div>
+                                    </div>
+                                    
+                                    @if (!string.IsNullOrEmpty(agendamento.Observacoes))
+                                    {
+                                        <div class="mb-3">
+                                            <p><strong><i class="fas fa-sticky-note me-2"></i>Observações:</strong></p>
+                                            <p class="text-muted">@agendamento.Observacoes</p>
+                                        </div>
+                                    }
+                                </div>
+                                <div class="card-footer">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <small class="text-muted">
+                                            <i class="fas fa-calendar-plus me-1"></i>
+                                            Agendado em @agendamento.DataCriacao.ToString("dd/MM/yyyy HH:mm")
+                                        </small>
+                                        @if (agendamento.DataHora > DateTime.Now)
+                                        {
+                                            <button class="btn btn-sm btn-outline-danger" @onclick="() => CancelarAgendamento(agendamento.Id)">
+                                                <i class="fas fa-times me-1"></i>Cancelar
+                                            </button>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<Agendamento> Agendamentos { get; set; } = new();
+    private bool isLoading = true;
+    private ApplicationUser? currentUser;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await VerificarUsuario();
+        await CarregarAgendamentos();
+    }
+
+    private async Task VerificarUsuario()
+    {
+        currentUser = await UserManager.GetUserAsync(SignInManager.Context.User);
+        if (currentUser == null)
+        {
+            NavigationManager.NavigateTo("/cliente/login");
+            return;
+        }
+    }
+
+    private async Task CarregarAgendamentos()
+    {
+        try
+        {
+            isLoading = true;
+            StateHasChanged();
+
+            using var context = DbFactory.CreateDbContext();
+            
+            // Buscar agendamentos do cliente logado
+            Agendamentos = await context.Agendamento
+                .Include(a => a.Servicos)
+                .Include(a => a.Profissional)
+                .Include(a => a.Cliente)
+                .ThenInclude(c => c.ApplicationUser)
+                .Where(a => a.ClienteId == currentUser!.Id)
+                .ToListAsync();
+
+            isLoading = false;
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro ao carregar agendamentos: {ex.Message}");
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private string GetProfissionalNome(Profissional profissional)
+    {
+        using var context = DbFactory.CreateDbContext();
+        var user = context.Users.FirstOrDefault(u => u.ProfissionalId == profissional.Id);
+        return user?.Nome ?? "Profissional";
+    }
+
+    private string GetStatusClass(Agendamento agendamento)
+    {
+        if (agendamento.DataHora < DateTime.Now)
+            return "border-success bg-light";
+        else if (agendamento.DataHora.Date == DateTime.Today)
+            return "border-warning bg-light";
+        else
+            return "";
+    }
+
+    private string GetStatusBadgeClass(Agendamento agendamento)
+    {
+        if (agendamento.DataHora < DateTime.Now)
+            return "bg-success";
+        else if (agendamento.DataHora.Date == DateTime.Today)
+            return "bg-warning text-dark";
+        else
+            return "bg-primary";
+    }
+
+    private string GetStatusText(Agendamento agendamento)
+    {
+        if (agendamento.DataHora < DateTime.Now)
+            return "Concluído";
+        else if (agendamento.DataHora.Date == DateTime.Today)
+            return "Hoje";
+        else
+            return "Agendado";
+    }
+
+    private async Task CancelarAgendamento(int agendamentoId)
+    {
+        try
+        {
+            using var context = DbFactory.CreateDbContext();
+            var agendamento = await context.Agendamento.FindAsync(agendamentoId);
+            
+            if (agendamento != null && agendamento.ClienteId == currentUser!.Id)
+            {
+                context.Agendamento.Remove(agendamento);
+                await context.SaveChangesAsync();
+                await CarregarAgendamentos();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro ao cancelar agendamento: {ex.Message}");
+        }
+    }
+}

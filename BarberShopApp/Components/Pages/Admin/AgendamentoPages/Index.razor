@@ -1,5 +1,5 @@
 @page "/admin/agendamentos"
-@attribute [Authorize]
+@attribute [Authorize(Roles = "Admin,Profissional")]
 @using Microsoft.EntityFrameworkCore
 @using Microsoft.AspNetCore.Components.QuickGrid
 @using BarberShopApp.Data

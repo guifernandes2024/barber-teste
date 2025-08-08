@@ -1,0 +1,32 @@
+@page "/cliente/logout-direct"
+@using Microsoft.AspNetCore.Identity
+@using BarberShopApp.Data
+@using BarberShopApp.Components.Account
+@inject SignInManager<ApplicationUser> SignInManager
+@inject IdentityRedirectManager RedirectManager
+
+@code {
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!;
+
+    [SupplyParameterFromForm(FormName = "LogoutDirectForm")]
+    private InputModel Input { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Verificar se é uma requisição POST para garantir segurança
+        if (HttpContext.Request.Method == "POST")
+        {
+            // Executar logout
+            await SignInManager.SignOutAsync();
+        }
+        
+        // Redirecionar para a landing page
+        RedirectManager.RedirectTo("/");
+    }
+
+    private sealed class InputModel
+    {
+        // Classe vazia apenas para manter consistência com FormName
+    }
+}

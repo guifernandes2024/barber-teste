@@ -16,7 +16,7 @@
 }
 
 .dashboard-card .card-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #1e3a8a 0%, #3730a3 100%);
     color: white;
     border-radius: 15px 15px 0 0 !important;
     border: none;
@@ -30,7 +30,7 @@
 
 /* Cards de estatísticas */
 .stats-card {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #1e3a8a 0%, #3730a3 100%);
     border: none;
     border-radius: 15px;
     color: white;
@@ -81,7 +81,7 @@
 }
 
 .chart-card .card-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #1e3a8a 0%, #3730a3 100%);
     color: white;
     border-radius: 15px 15px 0 0 !important;
     border: none;
@@ -104,7 +104,7 @@
 }
 
 .agendamentos-table .table th {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #1e3a8a 0%, #3730a3 100%);
     color: white;
     border: none;
     padding: 1rem;

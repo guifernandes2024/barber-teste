@@ -1,0 +1,221 @@
+@page "/admin/profissionais"
+@attribute [Authorize(Roles = "Admin")]
+@using Microsoft.EntityFrameworkCore
+@using BarberShopApp.Core.Models
+@using BarberShopApp.Data
+@using Microsoft.AspNetCore.Identity
+@inject IDbContextFactory<ApplicationDbContext> DbFactory
+@inject UserManager<ApplicationUser> UserManager
+@inject NavigationManager Navigation
+
+@rendermode InteractiveServer
+<PageTitle>Gerenciar Profissionais - Admin</PageTitle>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1><i class="fas fa-user-tie me-2"></i>Gerenciar Profissionais</h1>
+                <button class="btn btn-success" @onclick="NovoProfissional">
+                    <i class="fas fa-plus me-2"></i>Novo Profissional
+                </button>
+            </div>
+
+            @if (isLoading)
+            {
+                <div class="text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Carregando...</span>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="card">
+                    <div class="card-header">
+                        <div class="row align-items-center">
+                            <div class="col-md-6">
+                                <h5 class="mb-0">Lista de Profissionais</h5>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-search"></i>
+                                    </span>
+                                    <input type="text" class="form-control" placeholder="Buscar profissionais..." 
+                                           @bind="searchTerm" @bind:event="oninput" @onkeyup="FiltrarProfissionais" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        @if (!ProfissionaisFiltrados.Any())
+                        {
+                            <div class="text-center py-4">
+                                <i class="fas fa-user-tie fa-3x text-muted mb-3"></i>
+                                <h5 class="text-muted">Nenhum profissional encontrado</h5>
+                                <p class="text-muted">Não há profissionais cadastrados no sistema.</p>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th>Nome</th>
+                                            <th>Email</th>
+                                            <th>Documento</th>
+                                            <th>Data de Nascimento</th>
+                                            <th>Comissão</th>
+                                            <th>Status</th>
+                                            <th>Ações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var profissional in ProfissionaisFiltrados)
+                                        {
+                                            <tr>
+                                                <td>
+                                                    <div class="d-flex align-items-center">
+                                                        @if (!string.IsNullOrEmpty(profissional.ImgUrl))
+                                                        {
+                                                            <img src="@profissional.ImgUrl" class="rounded-circle me-2" 
+                                                                 style="width: 40px; height: 40px; object-fit: cover;" 
+                                                                 alt="Foto do profissional" />
+                                                        }
+                                                        else
+                                                        {
+                                                            <div class="avatar-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2">
+                                                                <i class="fas fa-user-tie"></i>
+                                                            </div>
+                                                        }
+                                                        <span class="fw-bold">@GetProfissionalNome(profissional)</span>
+                                                    </div>
+                                                </td>
+                                                <td>@GetProfissionalEmail(profissional)</td>
+                                                <td>@profissional.Documento</td>
+                                                <td>@profissional.DataNacimento.ToString("dd/MM/yyyy")</td>
+                                                <td>@profissional.PercentualDeComissao%</td>
+                                                <td>
+                                                    <span class="badge @(profissional.Fumante ? "bg-warning" : "bg-success")">
+                                                        @(profissional.Fumante ? "Fumante" : "Não Fumante")
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <div class="btn-group" role="group">
+                                                        <button class="btn btn-sm btn-outline-primary" @onclick="() => VerDetalhes(profissional.Id)">
+                                                            <i class="fas fa-eye"></i>
+                                                        </button>
+                                                        <button class="btn btn-sm btn-outline-warning" @onclick="() => EditarProfissional(profissional.Id)">
+                                                            <i class="fas fa-edit"></i>
+                                                        </button>
+                                                        <button class="btn btn-sm btn-outline-danger" @onclick="() => ExcluirProfissional(profissional.Id)">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<Profissional> Profissionais { get; set; } = new();
+    private List<Profissional> ProfissionaisFiltrados { get; set; } = new();
+    private bool isLoading = true;
+    private string searchTerm = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CarregarProfissionais();
+    }
+
+    private async Task CarregarProfissionais()
+    {
+        try
+        {
+            isLoading = true;
+            StateHasChanged();
+
+            using var context = DbFactory.CreateDbContext();
+            Profissionais = await context.Profissional
+                .Include(p => p.Especialidades)
+                .OrderBy(p => p.Id)
+                .ToListAsync();
+
+            ProfissionaisFiltrados = Profissionais.ToList();
+            isLoading = false;
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro ao carregar profissionais: {ex.Message}");
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private void FiltrarProfissionais()
+    {
+        if (string.IsNullOrWhiteSpace(searchTerm))
+        {
+            ProfissionaisFiltrados = Profissionais.ToList();
+        }
+        else
+        {
+            var term = searchTerm.ToLower();
+            ProfissionaisFiltrados = Profissionais.Where(p =>
+                GetProfissionalNome(p).ToLower().Contains(term) ||
+                GetProfissionalEmail(p).ToLower().Contains(term) ||
+                p.Documento.Contains(term)
+            ).ToList();
+        }
+        StateHasChanged();
+    }
+
+    private string GetProfissionalNome(Profissional profissional)
+    {
+        using var context = DbFactory.CreateDbContext();
+        var user = context.Users.FirstOrDefault(u => u.ProfissionalId == profissional.Id);
+        return user?.Nome ?? "Profissional";
+    }
+
+    private string GetProfissionalEmail(Profissional profissional)
+    {
+        using var context = DbFactory.CreateDbContext();
+        var user = context.Users.FirstOrDefault(u => u.ProfissionalId == profissional.Id);
+        return user?.Email ?? "N/A";
+    }
+
+    private void NovoProfissional()
+    {
+        Navigation.NavigateTo("/admin/profissionais/create");
+    }
+
+    private void VerDetalhes(int profissionalId)
+    {
+        Navigation.NavigateTo($"/admin/profissionais/details/{profissionalId}");
+    }
+
+    private void EditarProfissional(int profissionalId)
+    {
+        Navigation.NavigateTo($"/admin/profissionais/edit/{profissionalId}");
+    }
+
+    private async Task ExcluirProfissional(int profissionalId)
+    {
+        // Implementar confirmação e exclusão
+        // Por enquanto, apenas navegar para a página de exclusão
+        Navigation.NavigateTo($"/admin/profissionais/delete/{profissionalId}");
+    }
+}
+

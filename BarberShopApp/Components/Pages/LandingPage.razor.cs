@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using BarberShopApp.Core.Models;
 using BarberShopApp.Core.Services;
 using Microsoft.JSInterop;
+using Microsoft.AspNetCore.Identity;
+using BarberShopApp.Data;
 
 namespace BarberShopApp.Components.Pages
 {
@@ -10,6 +12,10 @@ namespace BarberShopApp.Components.Pages
     {
         [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
         [Inject] private ConfiguracaoBarbeariaService ConfiguracaoService { get; set; } = default!;
+        [Inject] private UserManager<ApplicationUser> UserManager { get; set; } = default!;
+        [Inject] private SignInManager<ApplicationUser> SignInManager { get; set; } = default!;
+        [Inject] private AgendamentoTempService AgendamentoTempService { get; set; } = default!;
+        [Inject] private NavigationManager NavigationManager { get; set; } = default!;
         
         private List<Servico> Servicos { get; set; } = new();
         private List<Servico> ServicosSelecionados { get; set; } = new();
@@ -23,6 +29,10 @@ namespace BarberShopApp.Components.Pages
         private string mensagemFeedback { get; set; } = string.Empty;
         private string tipoMensagem { get; set; } = string.Empty;
         private ConfiguracaoBarbearia? configuracao { get; set; }
+
+        // User authentication properties
+        private bool isUserLoggedIn { get; set; } = false;
+        private ApplicationUser? currentUser { get; set; }
 
         // Multi-step properties
         private int CurrentStep { get; set; } = 1;
@@ -47,12 +57,18 @@ namespace BarberShopApp.Components.Pages
                 Profissionais = new List<Profissional>();
                 Agendamento = new Agendamento();
                 
+                // Verificar se o usuário está logado
+                await VerificarUsuario();
+                
                 // Carregar configurações da barbearia
                 configuracao = await ConfiguracaoService.ObterOuCriarConfiguracaoAsync();
                 
                 // Carregar dados do banco
                 await CarregarServicos();
                 await CarregarProfissionais();
+                
+                // Restaurar agendamento temporário se existir
+                await RestaurarAgendamentoTemp();
                 
                 // Forçar atualização da UI
                 StateHasChanged();
@@ -71,10 +87,6 @@ namespace BarberShopApp.Components.Pages
                 try
                 {
                     await JSRuntime.InvokeVoidAsync("reinitializePhoneMasks");
-                    
-                    // Testar se o JavaScript está funcionando
-                    await JSRuntime.InvokeVoidAsync("testJavaScript");
-                    await JSRuntime.InvokeVoidAsync("checkFunctions");
                 }
                 catch (Exception ex)
                 {
@@ -330,6 +342,17 @@ namespace BarberShopApp.Components.Pages
         {
             if (CurrentStep < TotalSteps && CanProceedToNextStep)
             {
+                // Verificar se está tentando ir para o passo 4 sem estar logado
+                if (CurrentStep == 3 && !isUserLoggedIn)
+                {
+                    // Salvar estado do agendamento e redirecionar para login
+                    await SalvarAgendamentoTemp();
+                    await ExibirMensagem("Para continuar, você precisa estar logado. Redirecionando para login...", "info");
+                    await Task.Delay(2000); // Aguardar 2 segundos para mostrar a mensagem
+                    NavigationManager.NavigateTo("/cliente/login?returnUrl=/");
+                    return;
+                }
+
                 CurrentStep++;
                 
                 // Se está indo para o Step 3 (horários), carregar horários automaticamente
@@ -342,7 +365,7 @@ namespace BarberShopApp.Components.Pages
             }
         }
 
-        private bool CanProceedToNextStep
+                private bool CanProceedToNextStep
         {
             get
             {
@@ -351,10 +374,85 @@ namespace BarberShopApp.Components.Pages
                     1 => ServicosSelecionados.Any(),
                     2 => ProfissionalSelecionado != null,
                     3 => HorarioSelecionado.HasValue,
-                    4 => !string.IsNullOrWhiteSpace(Agendamento.NomeDoCliente) && 
-                          !string.IsNullOrWhiteSpace(Agendamento.NumeroDoCliente),
+                    4 => isUserLoggedIn || (!string.IsNullOrWhiteSpace(Agendamento.NomeDoCliente) &&
+                         !string.IsNullOrWhiteSpace(Agendamento.NumeroDoCliente)),
                     _ => false
                 };
+            }
+        }
+
+        private async Task VerificarUsuario()
+        {
+            try
+            {
+                currentUser = await UserManager.GetUserAsync(SignInManager.Context.User);
+                isUserLoggedIn = currentUser != null;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erro ao verificar usuário: {ex.Message}");
+                isUserLoggedIn = false;
+            }
+        }
+
+        private async Task SalvarAgendamentoTemp()
+        {
+            try
+            {
+                var agendamentoTemp = new AgendamentoTemp
+                {
+                    ServicosIds = ServicosSelecionados.Select(s => s.Id).ToList(),
+                    ProfissionalId = ProfissionalSelecionado?.Id,
+                    DataHora = HorarioSelecionado,
+                    Observacoes = Agendamento.Observacoes
+                };
+                
+                AgendamentoTempService.SalvarAgendamentoTemp(agendamentoTemp);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erro ao salvar agendamento temporário: {ex.Message}");
+            }
+        }
+
+        private async Task RestaurarAgendamentoTemp()
+        {
+            try
+            {
+                var agendamentoTemp = AgendamentoTempService.ObterAgendamentoTemp();
+                if (agendamentoTemp != null && isUserLoggedIn)
+                {
+                    // Restaurar serviços selecionados
+                    ServicosSelecionados = Servicos.Where(s => agendamentoTemp.ServicosIds.Contains(s.Id)).ToList();
+                    
+                    // Restaurar profissional selecionado
+                    if (agendamentoTemp.ProfissionalId.HasValue)
+                    {
+                        ProfissionalSelecionado = Profissionais.FirstOrDefault(p => p.Id == agendamentoTemp.ProfissionalId.Value);
+                    }
+                    
+                    // Restaurar horário selecionado
+                    if (agendamentoTemp.DataHora.HasValue)
+                    {
+                        HorarioSelecionado = agendamentoTemp.DataHora.Value;
+                        DataSelecionada = agendamentoTemp.DataHora.Value.Date;
+                    }
+                    
+                    // Restaurar observações
+                    Agendamento.Observacoes = agendamentoTemp.Observacoes ?? string.Empty;
+                    
+                    // Ir para o passo 4 (dados do cliente)
+                    CurrentStep = 4;
+                    
+                    // Limpar agendamento temporário
+                    AgendamentoTempService.LimparAgendamentoTemp();
+                    
+                    await ExibirMensagem("Seu agendamento foi restaurado! Complete os dados para finalizar.", "success");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erro ao restaurar agendamento temporário: {ex.Message}");
             }
         }
 
@@ -363,6 +461,12 @@ namespace BarberShopApp.Components.Pages
             if (!HorarioSelecionado.HasValue || ProfissionalSelecionado == null || !ServicosSelecionados.Any())
             {
                 await ExibirMensagem("Por favor, complete todos os passos do agendamento.", "error");
+                return;
+            }
+
+            if (!isUserLoggedIn || currentUser == null)
+            {
+                await ExibirMensagem("Você precisa estar logado para fazer um agendamento.", "error");
                 return;
             }
 
@@ -379,6 +483,14 @@ namespace BarberShopApp.Components.Pages
                 // Configura o agendamento
                 Agendamento.DataHora = HorarioSelecionado.Value;
                 Agendamento.ProfissionalId = ProfissionalSelecionado.Id;
+                Agendamento.ClienteId = currentUser.Id; // Vincular ao cliente logado
+                
+                // Preencher dados do cliente automaticamente se estiver logado
+                if (isUserLoggedIn && currentUser != null)
+                {
+                    Agendamento.NomeDoCliente = currentUser.Nome;
+                    Agendamento.NumeroDoCliente = currentUser.PhoneNumber ?? "";
+                }
 
                 // Busca os serviços existentes no banco de dados
                 var servicosIds = ServicosSelecionados.Select(s => s.Id).ToList();
@@ -389,7 +501,7 @@ namespace BarberShopApp.Components.Pages
                 context.Agendamento.Add(Agendamento);
                 await context.SaveChangesAsync();
 
-                await ExibirMensagem("Agendamento realizado com sucesso! Entraremos em contato em breve.", "success");
+                await ExibirMensagem("Agendamento realizado com sucesso! Você pode visualizar seus agendamentos na sua área do cliente.", "success");
                 LimparFormulario();
             }
             catch (Exception ex)
@@ -593,5 +705,7 @@ namespace BarberShopApp.Components.Pages
                 }
             }
         }
+
+
     }
 }

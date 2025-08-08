@@ -12,9 +12,11 @@ namespace BarberShopApp.Data
         public int? ProfissionalId { get; set; }
         public virtual Profissional? Profissional { get; set; }
         
+        // Data de criação do usuário
+        public DateTime? CreatedAt { get; set; }
+        
         // Sobrescreve a propriedade PhoneNumber para adicionar validação
         [PhoneNumber(ErrorMessage = "Formato de telefone inválido. Use o formato (99) 99999-9999")]
         public override string? PhoneNumber { get; set; }
     }
-
 }

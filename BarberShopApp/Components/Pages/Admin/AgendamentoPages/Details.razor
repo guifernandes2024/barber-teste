@@ -1,5 +1,5 @@
 @page "/admin/agendamentos/details"
-@attribute [Authorize]
+@attribute [Authorize(Roles = "Admin,Profissional")]
 @using Microsoft.EntityFrameworkCore
 @using BarberShopApp.Core.Models
 @inject IDbContextFactory<BarberShopApp.Data.ApplicationDbContext> DbFactory
@@ -17,8 +17,8 @@
                 </a>
             </div>
 
-            @if (agendamento is null)
-            {
+    @if (agendamento is null)
+    {
                 <div class="text-center">
                     <div class="spinner-border" role="status">
                         <span class="visually-hidden">Carregando...</span>
@@ -35,34 +35,34 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label class="form-label fw-bold text-dark">ID do Agendamento:</label>
-                                    <p class="form-control-plaintext text-dark">@agendamento.Id</p>
+                                    <label class="form-label fw-bold">ID do Agendamento:</label>
+                                    <p class="form-control-plaintext">@agendamento.Id</p>
                                 </div>
                                 
                                 <div class="mb-3">
-                                    <label class="form-label fw-bold text-dark">Data e Hora:</label>
-                                    <p class="form-control-plaintext text-dark">@agendamento.DataHora.ToString("dd/MM/yyyy HH:mm")</p>
+                                    <label class="form-label fw-bold">Data e Hora:</label>
+                                    <p class="form-control-plaintext">@agendamento.DataHora.ToString("dd/MM/yyyy HH:mm")</p>
                                 </div>
                                 
                                 <div class="mb-3">
-                                    <label class="form-label fw-bold text-dark">Nome do Cliente:</label>
-                                    <p class="form-control-plaintext text-dark">@agendamento.NomeDoCliente</p>
+                                    <label class="form-label fw-bold">Nome do Cliente:</label>
+                                    <p class="form-control-plaintext">@agendamento.NomeDoCliente</p>
                                 </div>
                                 
                                 <div class="mb-3">
-                                    <label class="form-label fw-bold text-dark">Telefone:</label>
-                                    <p class="form-control-plaintext text-dark">@agendamento.NumeroDoCliente</p>
+                                    <label class="form-label fw-bold">Telefone:</label>
+                                    <p class="form-control-plaintext">@agendamento.NumeroDoCliente</p>
                                 </div>
                                 
                                 <div class="mb-3">
-                                    <label class="form-label fw-bold text-dark">Profissional:</label>
-                                    <p class="form-control-plaintext text-dark">@GetProfissionalNome(agendamento.ProfissionalId)</p>
+                                    <label class="form-label fw-bold">Profissional:</label>
+                                    <p class="form-control-plaintext">@GetProfissionalNome(agendamento.ProfissionalId)</p>
                                 </div>
                             </div>
                             
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label class="form-label fw-bold text-dark">Serviços:</label>
+                                    <label class="form-label fw-bold">Serviços:</label>
                                     <div class="form-control-plaintext">
                                         @foreach (var servico in agendamento.Servicos)
                                         {
@@ -74,21 +74,21 @@
                                 @if (!string.IsNullOrEmpty(agendamento.Observacoes))
                                 {
                                     <div class="mb-3">
-                                        <label class="form-label fw-bold text-dark">Observações:</label>
-                                        <p class="form-control-plaintext text-dark">@agendamento.Observacoes</p>
+                                        <label class="form-label fw-bold">Observações:</label>
+                                        <p class="form-control-plaintext">@agendamento.Observacoes</p>
                                     </div>
                                 }
                                 
                                 <div class="mb-3">
-                                    <label class="form-label fw-bold text-dark">Valor Total:</label>
+                                    <label class="form-label fw-bold">Valor Total:</label>
                                     <p class="form-control-plaintext text-success fw-bold">
                                         R$ @agendamento.Servicos.Sum(s => s.Preco).ToString("F2")
                                     </p>
                                 </div>
                                 
                                 <div class="mb-3">
-                                    <label class="form-label fw-bold text-dark">Duração Total:</label>
-                                    <p class="form-control-plaintext text-dark">
+                                    <label class="form-label fw-bold">Duração Total:</label>
+                                    <p class="form-control-plaintext">
                                         @agendamento.Servicos.Sum(s => s.DuracaoEmMinutos) minutos
                                     </p>
                                 </div>

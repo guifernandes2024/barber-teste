@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BarberShopApp.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250801013806_initial1")]
-    partial class initial1
+    [Migration("20250807191601_initial")]
+    partial class initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -40,6 +40,10 @@ namespace BarberShopApp.Migrations
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
+
+                    b.Property<string>("ClienteId")
+                        .HasMaxLength(450)
+                        .HasColumnType("TEXT");
 
                     b.Property<DateTime>("DataAtualizacao")
                         .HasColumnType("TEXT");
@@ -70,6 +74,8 @@ namespace BarberShopApp.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ClienteId");
+
                     b.HasIndex("ProfissionalId");
 
                     b.ToTable("Agendamentos", (string)null);
@@ -80,9 +86,7 @@ namespace BarberShopApp.Migrations
                     b.Property<string>("Id")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("Nome")
-                        .IsRequired()
-                        .HasMaxLength(100)
+                    b.Property<DateTime>("DataNascimento")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Telefone")
@@ -267,8 +271,8 @@ namespace BarberShopApp.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("TEXT");
 
-                    b.Property<int?>("PercentualDeComissao")
-                        .HasColumnType("INTEGER");
+                    b.Property<decimal>("PercentualDeComissao")
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("TipoDocumento")
                         .IsRequired()
@@ -327,6 +331,9 @@ namespace BarberShopApp.Migrations
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("CreatedAt")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Email")
@@ -550,11 +557,17 @@ namespace BarberShopApp.Migrations
 
             modelBuilder.Entity("BarberShopApp.Core.Models.Agendamento", b =>
                 {
+                    b.HasOne("BarberShopApp.Core.Models.Cliente", "Cliente")
+                        .WithMany()
+                        .HasForeignKey("ClienteId");
+
                     b.HasOne("BarberShopApp.Core.Models.Profissional", "Profissional")
                         .WithMany("Agendamentos")
                         .HasForeignKey("ProfissionalId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("Cliente");
 
                     b.Navigation("Profissional");
                 });

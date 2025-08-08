@@ -1,51 +1,104 @@
 @page "/admin/agendamentos/delete"
+@attribute [Authorize(Roles = "Admin,Profissional")]
 @using Microsoft.EntityFrameworkCore
 @using BarberShopApp.Core.Models
 @inject IDbContextFactory<BarberShopApp.Data.ApplicationDbContext> DbFactory
 @inject NavigationManager NavigationManager
 
-<PageTitle>Delete</PageTitle>
+<PageTitle>Excluir Agendamento - BarberShop</PageTitle>
 
-<h1>Delete</h1>
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1><i class="fas fa-trash me-2"></i>Excluir Agendamento</h1>
+                <a href="/admin/agendamentos" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Voltar
+                </a>
+            </div>
 
-<p>Are you sure you want to delete this?</p>
-<div>
-    <h2>Agendamento</h2>
-    <hr />
-    @if (agendamento is null)
-    {
-        <p><em>Loading...</em></p>
-    }
-    else {
-        <dl class="row">
-            <dt class="col-sm-2">DataHora</dt>
-            <dd class="col-sm-10">@agendamento.DataHora</dd>
-        </dl>
-        <dl class="row">
-            <dt class="col-sm-2">NomeDoCliente</dt>
-            <dd class="col-sm-10">@agendamento.NomeDoCliente</dd>
-        </dl>
-        <dl class="row">
-            <dt class="col-sm-2">NumeroDoCliente</dt>
-            <dd class="col-sm-10">@agendamento.NumeroDoCliente</dd>
-        </dl>
-        <dl class="row">
-            <dt class="col-sm-2">Servi�os:</dt>
-            @foreach (var servico in @agendamento.Servicos)
+            @if (agendamento is null)
             {
-            <dd class="col-sm-10">@servico.Nome</dd>
-                
+                <div class="text-center">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Carregando...</span>
+                    </div>
+                </div>
             }
-            </dl>
-        <dl class="row">
-            <dt class="col-sm-2">Observacoes</dt>
-            <dd class="col-sm-10">@agendamento.Observacoes</dd>
-        </dl>
-        <EditForm method="post" Model="agendamento" OnValidSubmit="DeleteAgendamento" FormName="delete" Enhance>
-            <button type="submit" class="btn btn-danger" disabled="@(agendamento is null)">Delete</button> |
-            <a href="/admin/agendamentos">Back to List</a>
-        </EditForm>
-    }
+            else
+            {
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Confirmar Exclusão</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Atenção!</strong> Tem certeza que deseja excluir este agendamento? Esta ação não pode ser desfeita.
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Data e Hora:</label>
+                                    <p class="form-control-plaintext">@agendamento.DataHora.ToString("dd/MM/yyyy HH:mm")</p>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Nome do Cliente:</label>
+                                    <p class="form-control-plaintext">@agendamento.NomeDoCliente</p>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Telefone:</label>
+                                    <p class="form-control-plaintext">@agendamento.NumeroDoCliente</p>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Serviços:</label>
+                                    <div class="form-control-plaintext">
+                                        @foreach (var servico in agendamento.Servicos)
+                                        {
+                                            <span class="badge bg-primary me-1 mb-1">@servico.Nome</span>
+                                        }
+                                    </div>
+                                </div>
+                                
+                                @if (!string.IsNullOrEmpty(agendamento.Observacoes))
+                                {
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Observações:</label>
+                                        <p class="form-control-plaintext">@agendamento.Observacoes</p>
+                                    </div>
+                                }
+                                
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Valor Total:</label>
+                                    <p class="form-control-plaintext text-success fw-bold">
+                                        R$ @agendamento.Servicos.Sum(s => s.Preco).ToString("F2")
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <div class="d-flex gap-2">
+                            <EditForm method="post" Model="agendamento" OnValidSubmit="DeleteAgendamento" FormName="delete" Enhance>
+                                <button type="submit" class="btn btn-danger" disabled="@(agendamento is null)">
+                                    <i class="fas fa-trash me-2"></i>Confirmar Exclusão
+                                </button>
+                            </EditForm>
+                            <a href="/admin/agendamentos" class="btn btn-secondary">
+                                <i class="fas fa-times me-2"></i>Cancelar
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
 </div>
 
 @code {
@@ -57,7 +110,9 @@
     protected override async Task OnInitializedAsync()
     {
         using var context = DbFactory.CreateDbContext();
-        agendamento = await context.Agendamento.FirstOrDefaultAsync(m => m.Id == Id);
+        agendamento = await context.Agendamento
+            .Include(a => a.Servicos)
+            .FirstOrDefaultAsync(m => m.Id == Id);
 
         if (agendamento is null)
         {
